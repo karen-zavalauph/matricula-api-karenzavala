@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema Académico</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+
+  <!-- ===================== VISTA: LOGIN ===================== -->
+  <section id="vista-login" class="vista vista-login">
+    <div class="tarjeta-login">
+      <p class="etiqueta">PROGRAMACIÓN III · PROYECTO DE CURSO</p>
+      <h1>Sistema Académico</h1>
+      <p class="subtitulo">Inicia sesión para ver el panel general.</p>
+
+      <form id="formulario-login">
+        <label for="campo-usuario">Usuario</label>
+        <input id="campo-usuario" type="text" autocomplete="username" required />
+
+        <label for="campo-clave">Contraseña</label>
+        <input id="campo-clave" type="password" autocomplete="current-password" required />
+
+        <button type="submit" id="boton-entrar">Iniciar sesión</button>
+      </form>
+
+      <p id="mensaje-login" class="mensaje-error" aria-live="polite"></p>
+
+      <div class="ayuda-usuarios">
+        <p>Usuarios de prueba:</p>
+        <code>admin / admin123</code> · <code>docente / docente123</code>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== VISTA: DASHBOARD ==================== -->
+  <section id="vista-dashboard" class="vista vista-dashboard oculto">
+    <header class="barra-superior">
+
+
+
+     <!--boton menu plegeble--> 
+      <button
+    type="button"
+    id="boton-menu"
+    aria-label="Abrir o cerrar menú"
+    aria-expanded="true"
+    aria-controls="menu-lateral"
+  >☰</button>
+
+
+
+
+      <div>
+        <p class="etiqueta">SISTEMA ACADÉMICO</p>
+        <h1 id="titulo-bienvenida">Panel general</h1>
+      </div>
+      <div class="acciones-barra">
+        <span id="chip-usuario" class="chip-usuario"></span>
+        <button id="boton-actualizar" class="boton-secundario">Actualizar</button>
+        <button id="boton-salir" class="boton-secundario">Cerrar sesión</button>
+      </div>
+    </header>
+
+
+
+
+
+
+<!--menú lateral-->
+    <div class="layout-dashboard" id="layout-dashboard">
+  <aside class="menu-lateral" id="menu-lateral">
+    <h2>Sistema Académico</h2>
+
+    <nav aria-label="Navegación principal">
+      <button type="button" data-destino="inicio">Inicio</button>
+      <button type="button" data-destino="carreras">Carreras</button>
+      <button type="button" data-destino="estudiantes">Estudiantes</button>
+      <button type="button" data-destino="docentes">Docentes</button>
+      <button type="button" data-destino="periodos">Períodos</button>
+      <button type="button" data-destino="aulas">Aulas</button>
+      <button type="button" data-destino="asignaturas">Asignaturas</button>
+      <button type="button" data-destino="secciones">Secciones</button>
+      <button type="button" data-destino="matriculas">Matrículas</button>
+      <button type="button" data-destino="calificaciones">Calificaciones</button>
+      <button type="button" data-destino="reportes">Reportes</button>
+    </nav>
+  </aside>
+
+
+
+
+
+
+    <main class="contenido">
+      <section id="vista-inicio" class="vista-modulo">
+      <section class="fila-tarjetas" id="fila-tarjetas" aria-label="Indicadores generales">
+        <!-- las tarjetas (stat tiles) se generan por JavaScript -->
+      </section>
+     <p id="texto-periodo" class="texto-periodo"></p>
+    </section>
+
+
+
+
+<section id="vista-carreras" class="vista-modulo oculto">
+      <!-- Carreras -->
+<section class="tarjeta tarjeta-formulario">
+  <h2 id="titulo-formulario-carrera">Nueva carrera</h2>
+
+  <form id="formulario-carrera" class="rejilla-formulario">
+    <input type="hidden" id="carrera-id" />
+
+    <div class="campo">
+      <label for="carrera-codigo">Código</label>
+      <input id="carrera-codigo" required minlength="2" maxlength="10" />
+    </div>
+
+    <div class="campo">
+      <label for="carrera-nombre">Nombre</label>
+      <input id="carrera-nombre" required minlength="4" maxlength="120" />
+    </div>
+
+    <div class="campo">
+      <label for="carrera-duracion">Duración en años</label>
+      <input
+        id="carrera-duracion"
+        type="number"
+        min="1"
+        max="10"
+        required
+      />
+    </div>
+
+    <div class="campo">
+      <label for="carrera-activa">Activa</label>
+      <select id="carrera-activa">
+        <option value="true">Sí</option>
+        <option value="false">No</option>
+      </select>
+    </div>
+
+    <button type="button" id="boton-guardar-carrera">Guardar carrera</button>
+  </form>
+
+  <p id="mensaje-carrera" class="mensaje-error" aria-live="polite"></p>
+</section>
+
+<section class="tarjeta tarjeta-tabla">
+  <h2>Carreras</h2>
+
+  <div class="contenedor-tabla">
+    <table>
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Nombre</th>
+          <th>Duración</th>
+          <th>Activa</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="cuerpo-tabla-carreras"></tbody>
+    </table>
+  </div>
+</section>
+</section>
+
+     
+
+
+
+
+<section id="vista-estudiantes" class="vista-modulo oculto">
+      <!-- estudiante -->
+      <section class="tarjeta tarjeta-formulario">
+        <div class="encabezado-tarjeta">
+          <h2 id="titulo-formulario">Nuevo estudiante</h2>
+        </div>
+
+        <form id="formulario-estudiante" class="rejilla-formulario">
+          <input type="hidden" id="estudiante-id" />
+
+          <div class="campo">
+            <label for="estudiante-nombres">Nombres</label>
+            <input id="estudiante-nombres" required minlength="2" maxlength="80" />
+          </div>
+          <div class="campo">
+            <label for="estudiante-apellidos">Apellidos</label>
+            <input id="estudiante-apellidos" required minlength="2" maxlength="80" />
+          </div>
+
+          <div class="campo">
+            <label for="estudiante-cuenta">Número de cuenta</label>
+            <input id="estudiante-cuenta" required minlength="5" maxlength="20" placeholder="20261005" />
+          </div>
+          <div class="campo">
+            <label for="estudiante-correo">Correo</label>
+            <input id="estudiante-correo" type="email" required placeholder="nombre@universidad.edu" />
+          </div>
+
+          <div class="campo">
+            <label for="estudiante-telefono">Teléfono (opcional)</label>
+            <input id="estudiante-telefono" maxlength="25" placeholder="9999-0000" />
+          </div>
+          <div class="campo">
+            <label for="estudiante-nacimiento">Fecha de nacimiento</label>
+            <input id="estudiante-nacimiento" type="date" required />
+          </div>
+
+          <div class="campo">
+            <label for="estudiante-carrera">Carrera</label>
+            <select id="estudiante-carrera" required></select>
+          </div>
+          <div class="campo">
+            <label for="estudiante-estado">Estado</label>
+            <select id="estudiante-estado">
+              <option value="ACTIVO">Activo</option>
+              <option value="INACTIVO">Inactivo</option>
+              <option value="GRADUADO">Graduado</option>
+            </select>
+          </div>
+
+          <div class="acciones-formulario">
+            <button type="submit" id="boton-guardar-estudiante">Guardar estudiante</button>
+            <button type="button" id="boton-cancelar-edicion" class="boton-secundario oculto">
+              Cancelar edición
+            </button>
+          </div>
+        </form>
+        <p id="mensaje-formulario" class="mensaje-error" aria-live="polite"></p>
+      </section>
+
+      <section class="tarjeta tarjeta-tabla">
+        <div class="encabezado-tarjeta">
+          <h2>Estudiantes</h2>
+          <input
+            id="campo-buscar"
+            type="search"
+            placeholder="Buscar por nombre, cuenta o correo..."
+          />
+        </div>
+
+        <div class="contenedor-tabla">
+          <table>
+            <thead>
+              <tr>
+                <th>Cuenta</th>
+                <th>Nombre completo</th>
+                <th>Correo</th>
+                <th>Carrera</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="cuerpo-tabla-estudiantes"></tbody>
+          </table>
+        </div>
+        <p id="texto-sin-resultados" class="texto-vacio oculto">
+          No se encontraron estudiantes con ese criterio.
+        </p>
+      </section>
+      </section>
+
+
+ 
+
+<section id="vista-docentes" class="vista-modulo oculto">
+<!-- ==================== docentes ==================== -->
+ <section class="tarjeta tarjeta-formulario">
+  <h2>Nuevo docente</h2>
+
+  <form id="formulario-docente" class="rejilla-formulario">
+    <input type="hidden" id="docente-id" />
+
+    <div class="campo">
+      <label for="docente-numero">Número de empleado</label>
+      <input id="docente-numero" required />
+    </div>
+
+    <div class="campo">
+      <label for="docente-nombres">Nombres</label>
+      <input id="docente-nombres" required />
+    </div>
+
+    <div class="campo">
+      <label for="docente-apellidos">Apellidos</label>
+      <input id="docente-apellidos" required />
+    </div>
+
+    <div class="campo">
+      <label for="docente-correo">Correo</label>
+      <input id="docente-correo" type="email" required />
+    </div>
+
+    <div class="campo">
+      <label for="docente-especialidad">Especialidad</label>
+      <input id="docente-especialidad" required />
+    </div>
+
+    <div class="campo">
+      <label for="docente-estado">Estado</label>
+      <select id="docente-estado">
+        <option value="ACTIVO">Activo</option>
+        <option value="INACTIVO">Inactivo</option>
+      </select>
+    </div>
+
+    <button type="button" id="boton-guardar-docente">Guardar docente</button>
+  </form>
+
+  <p id="mensaje-docente" class="mensaje-error" aria-live="polite"></p>
+</section>
+
+<section class="tarjeta tarjeta-tabla">
+  <h2>Docentes</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Número</th>
+        <th>Nombre</th>
+        <th>Correo</th>
+        <th>Especialidad</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="cuerpo-tabla-docentes"></tbody>
+  </table>
+</section>
+</section>
+
+
+
+
+
+
+
+<section id="vista-periodos" class="vista-modulo oculto">
+<!-- Períodos académicos -->
+<section class="tarjeta tarjeta-formulario">
+  <h2 id="titulo-formulario-periodo">Nuevo período</h2>
+
+  <form id="formulario-periodo" class="rejilla-formulario">
+    <input type="hidden" id="periodo-id" />
+
+    <div class="campo">
+      <label for="periodo-anio">Año</label>
+      <input id="periodo-anio" type="number" min="2020" max="2100" required />
+    </div>
+
+    <div class="campo">
+      <label for="periodo-numero">Número de período</label>
+      <select id="periodo-numero" required>
+        <option value="1">Período 1</option>
+        <option value="2">Período 2</option>
+        <option value="3">Período 3</option>
+      </select>
+    </div>
+
+    <div class="campo">
+      <label for="periodo-fecha-inicio">Fecha de inicio</label>
+      <input id="periodo-fecha-inicio" type="date" required />
+    </div>
+
+    <div class="campo">
+      <label for="periodo-fecha-fin">Fecha de fin</label>
+      <input id="periodo-fecha-fin" type="date" required />
+    </div>
+
+    <div class="campo">
+      <label for="periodo-activo">¿Es el período activo?</label>
+      <select id="periodo-activo">
+        <option value="false">No</option>
+        <option value="true">Sí</option>
+      </select>
+    </div>
+
+    <button type="button" id="boton-guardar-periodo">Guardar período</button>
+  </form>
+
+  <p id="mensaje-periodo" class="mensaje-error" aria-live="polite"></p>
+</section>
+
+<section class="tarjeta tarjeta-tabla">
+  <h2>Períodos académicos</h2>
+
+  <div class="contenedor-tabla">
+    <table>
+      <thead>
+        <tr>
+          <th>Período</th>
+          <th>Inicio</th>
+          <th>Fin</th>
+          <th>Activo</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="cuerpo-tabla-periodos"></tbody>
+    </table>
+  </div>
+</section>
+</section>
+
+
+
+
+
+<section id="vista-aulas" class="vista-modulo oculto">
+<!-- Aulas -->
+<section class="tarjeta tarjeta-formulario">
+  <h2 id="titulo-formulario-aula">Nueva aula</h2>
+
+  <form id="formulario-aula" class="rejilla-formulario">
+    <input type="hidden" id="aula-id" />
+
+    <div class="campo">
+      <label for="aula-codigo">Código</label>
+      <input id="aula-codigo" required minlength="2" maxlength="20" />
+    </div>
+
+    <div class="campo">
+      <label for="aula-edificio">Edificio</label>
+      <input id="aula-edificio" required minlength="2" maxlength="80" />
+    </div>
+
+    <div class="campo">
+      <label for="aula-capacidad">Capacidad</label>
+      <input id="aula-capacidad" type="number" min="1" max="200" required />
+    </div>
+
+    <div class="campo">
+      <label for="aula-activa">Activa</label>
+      <select id="aula-activa">
+        <option value="true">Sí</option>
+        <option value="false">No</option>
+      </select>
+    </div>
+
+    <button type="button" id="boton-guardar-aula">Guardar aula</button>
+  </form>
+
+  <p id="mensaje-aula" class="mensaje-error" aria-live="polite"></p>
+</section>
+
+<section class="tarjeta tarjeta-tabla">
+  <h2>Aulas</h2>
+
+  <div class="contenedor-tabla">
+    <table>
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Edificio</th>
+          <th>Capacidad</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="cuerpo-tabla-aulas"></tbody>
+    </table>
+  </div>
+</section>
+</section>
+
+
+
+
+<section id="vista-asignaturas" class="vista-modulo oculto">
+<!-- Asignaturas -->
+<section class="tarjeta tarjeta-formulario">
+  <h2 id="titulo-formulario-asignatura">Nueva asignatura</h2>
+
+  <form id="formulario-asignatura" class="rejilla-formulario">
+    <input type="hidden" id="asignatura-id" />
+
+    <div class="campo">
+      <label for="asignatura-codigo">Código</label>
+      <input id="asignatura-codigo" required minlength="3" maxlength="15" />
+    </div>
+
+    <div class="campo">
+      <label for="asignatura-nombre">Nombre</label>
+      <input id="asignatura-nombre" required minlength="3" maxlength="120" />
+    </div>
+
+    <div class="campo">
+      <label for="asignatura-unidades">Unidades valorativas</label>
+      <input
+        id="asignatura-unidades"
+        type="number"
+        min="1"
+        max="8"
+        required
+      />
+    </div>
+
+    <div class="campo">
+      <label for="asignatura-carrera">Carrera</label>
+      <select id="asignatura-carrera" required></select>
+    </div>
+
+    <div class="campo">
+      <label for="asignatura-requisito">Asignatura requisito (opcional)</label>
+      <select id="asignatura-requisito">
+        <option value="">Sin requisito</option>
+      </select>
+    </div>
+
+    <div class="campo">
+      <label for="asignatura-activa">Activa</label>
+      <select id="asignatura-activa">
+        <option value="true">Sí</option>
+        <option value="false">No</option>
+      </select>
+    </div>
+
+    <button type="button" id="boton-guardar-asignatura">
+      Guardar asignatura
+    </button>
+  </form>
+
+  <p id="mensaje-asignatura" class="mensaje-error" aria-live="polite"></p>
+</section>
+
+<section class="tarjeta tarjeta-tabla">
+  <h2>Asignaturas</h2>
+
+  <div class="contenedor-tabla">
+    <table>
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Nombre</th>
+          <th>Unidades</th>
+          <th>Carrera</th>
+          <th>Requisito</th>
+          <th>Activa</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="cuerpo-tabla-asignaturas"></tbody>
+    </table>
+  </div>
+</section>
+</section>
+
+
+
+
+
+<section id="vista-secciones" class="vista-modulo oculto">
+<!-- Secciones -->
+<section class="tarjeta tarjeta-formulario">
+  <h2 id="titulo-formulario-seccion">Nueva sección</h2>
+
+  <form id="formulario-seccion" class="rejilla-formulario">
+    <input type="hidden" id="seccion-id" />
+
+    <div class="campo">
+      <label for="seccion-codigo">Código de sección</label>
+      <input id="seccion-codigo" required minlength="2" maxlength="10" />
+    </div>
+
+    <div class="campo">
+      <label for="seccion-asignatura">Asignatura</label>
+      <select id="seccion-asignatura" required></select>
+    </div>
+
+    <div class="campo">
+      <label for="seccion-docente">Docente</label>
+      <select id="seccion-docente" required></select>
+    </div>
+
+    <div class="campo">
+      <label for="seccion-periodo">Período</label>
+      <select id="seccion-periodo" required></select>
+    </div>
+
+    <div class="campo">
+      <label for="seccion-aula">Aula (opcional)</label>
+      <select id="seccion-aula">
+        <option value="">Sin aula asignada</option>
+      </select>
+    </div>
+
+    <div class="campo">
+      <label for="seccion-dias">Días</label>
+      <input id="seccion-dias" required placeholder="LU-MI" />
+    </div>
+
+    <div class="campo">
+      <label for="seccion-hora-inicio">Hora de inicio</label>
+      <input id="seccion-hora-inicio" type="time" required />
+    </div>
+
+    <div class="campo">
+      <label for="seccion-hora-fin">Hora de fin</label>
+      <input id="seccion-hora-fin" type="time" required />
+    </div>
+
+    <div class="campo">
+      <label for="seccion-cupo">Cupo máximo</label>
+      <input id="seccion-cupo" type="number" min="1" max="200" required />
+    </div>
+
+    <div class="campo">
+      <label for="seccion-estado">Estado</label>
+      <select id="seccion-estado">
+        <option value="ABIERTA">Abierta</option>
+        <option value="CERRADA">Cerrada</option>
+        <option value="FINALIZADA">Finalizada</option>
+      </select>
+    </div>
+
+    <button type="button" id="boton-guardar-seccion">Guardar sección</button>
+  </form>
+
+  <p id="mensaje-seccion" class="mensaje-error" aria-live="polite"></p>
+</section>
+
+<section class="tarjeta tarjeta-tabla">
+  <h2>Secciones</h2>
+
+  <div class="contenedor-tabla">
+    <table>
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Asignatura</th>
+          <th>Docente</th>
+          <th>Período</th>
+          <th>Aula</th>
+          <th>Horario</th>
+          <th>Cupos disponibles</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="cuerpo-tabla-secciones"></tbody>
+    </table>
+  </div>
+</section>
+</section>
+
+
+
+
+
+
+
+
+<section id="vista-matriculas" class="vista-modulo oculto">
+<!-- Matrículas -->
+<section class="tarjeta tarjeta-formulario">
+  <h2>Nueva matrícula</h2>
+
+  <form id="formulario-matricula" class="rejilla-formulario">
+    <div class="campo">
+      <label for="matricula-estudiante">Estudiante activo</label>
+      <select id="matricula-estudiante" required></select>
+    </div>
+
+    <div class="campo">
+      <label for="matricula-seccion">Sección disponible</label>
+      <select id="matricula-seccion" required></select>
+    </div>
+
+    <button type="button" id="boton-guardar-matricula">
+      Matricular estudiante
+    </button>
+  </form>
+
+  <p id="mensaje-matricula" class="mensaje-error" aria-live="polite"></p>
+</section>
+
+<section class="tarjeta tarjeta-tabla">
+  <h2>Matrículas</h2>
+
+  <div class="contenedor-tabla">
+    <table>
+      <thead>
+        <tr>
+          <th>Cuenta</th>
+          <th>Estudiante</th>
+          <th>Asignatura</th>
+          <th>Sección</th>
+          <th>Período</th>
+          <th>Fecha</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="cuerpo-tabla-matriculas"></tbody>
+    </table>
+  </div>
+</section>
+</section>
+
+
+
+
+
+<section id="vista-calificaciones" class="vista-modulo oculto">
+<!-- Calificaciones -->
+<section class="tarjeta tarjeta-formulario">
+  <h2>Registrar calificaciones</h2>
+
+  <form id="formulario-calificacion" class="rejilla-formulario">
+    <div class="campo">
+      <label for="calificacion-matricula">Matrícula</label>
+      <select id="calificacion-matricula" required></select>
+    </div>
+
+    <div class="campo">
+      <label for="calificacion-parcial-1">Primer parcial</label>
+      <input
+        id="calificacion-parcial-1"
+        type="number"
+        min="0"
+        max="100"
+        step="0.01"
+        required
+      />
+    </div>
+
+    <div class="campo">
+      <label for="calificacion-parcial-2">Segundo parcial</label>
+      <input
+        id="calificacion-parcial-2"
+        type="number"
+        min="0"
+        max="100"
+        step="0.01"
+        required
+      />
+    </div>
+
+    <div class="campo">
+      <label for="calificacion-parcial-3">Tercer parcial</label>
+      <input
+        id="calificacion-parcial-3"
+        type="number"
+        min="0"
+        max="100"
+        step="0.01"
+        required
+      />
+    </div>
+
+    <div class="campo">
+      <label for="calificacion-observacion">Observación (opcional)</label>
+      <input id="calificacion-observacion" maxlength="250" />
+    </div>
+
+    <button type="button" id="boton-guardar-calificacion">
+      Guardar calificaciones
+    </button>
+  </form>
+
+  <p id="mensaje-calificacion" class="mensaje-error" aria-live="polite"></p>
+</section>
+
+<section class="tarjeta tarjeta-tabla">
+  <h2>Calificaciones registradas</h2>
+
+  <div class="contenedor-tabla">
+    <table>
+      <thead>
+        <tr>
+          <th>Estudiante</th>
+          <th>Asignatura</th>
+          <th>Período</th>
+          <th>Parciales</th>
+          <th>Nota final</th>
+          <th>Resultado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="cuerpo-tabla-calificaciones"></tbody>
+    </table>
+  </div>
+</section>
+</section>
+
+
+
+
+<section id="vista-reportes" class="vista-modulo oculto">
+<!-- Reportes -->
+<section class="tarjeta">
+  <h2>Reportes académicos</h2>
+
+  <div class="rejilla-formulario">
+    <div class="campo">
+      <label for="reporte-estudiante">Historial de estudiante</label>
+      <select id="reporte-estudiante"></select>
+      <button type="button" id="boton-reporte-historial">
+        Consultar historial
+      </button>
+    </div>
+
+    <div class="campo">
+      <label for="reporte-seccion">Lista de sección</label>
+      <select id="reporte-seccion"></select>
+      <button type="button" id="boton-reporte-seccion">
+        Consultar lista
+      </button>
+    </div>
+
+    <div class="campo">
+      <label for="reporte-docente">Carga de docente</label>
+      <select id="reporte-docente"></select>
+    </div>
+
+    <div class="campo">
+      <label for="reporte-periodo">Período (opcional)</label>
+      <select id="reporte-periodo">
+        <option value="">Todos los períodos</option>
+      </select>
+      <button type="button" id="boton-reporte-docente">
+        Consultar carga
+      </button>
+    </div>
+  </div>
+
+  <p id="mensaje-reportes" class="mensaje-error" aria-live="polite"></p>
+
+  <h3>Resultado</h3>
+  <pre id="resultado-reporte">Selecciona un reporte para consultar.</pre>
+</section>
+</section>
+
+
+
+
+
+    </main>
+
+    </div>
+  </section>
+
+  <script src="/app.js"></script>
+</body>
+</html>
