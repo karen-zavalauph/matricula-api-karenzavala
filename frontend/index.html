@@ -40,7 +40,7 @@
 
 
 
-     <!--boton menu plegeble--> 
+     <!--boton menu plegable--> 
       <button
     type="button"
     id="boton-menu"
@@ -98,7 +98,12 @@
       <section class="fila-tarjetas" id="fila-tarjetas" aria-label="Indicadores generales">
         <!-- las tarjetas (stat tiles) se generan por JavaScript -->
       </section>
-     <p id="texto-periodo" class="texto-periodo"></p>
+
+
+    <!--<p id="texto-periodo" class="texto-periodo"></p>--> 
+
+
+    
     </section>
 
 
@@ -149,6 +154,12 @@
 
 <section class="tarjeta tarjeta-tabla">
   <h2>Carreras</h2>
+    <input
+  class="campo-buscar-tabla"
+  data-tabla="cuerpo-tabla-carreras"
+  type="search"
+  placeholder="Buscar por nombre o código..."
+/>
 
   <div class="contenedor-tabla">
     <table>
@@ -314,7 +325,18 @@
 </section>
 
 <section class="tarjeta tarjeta-tabla">
-  <h2>Docentes</h2>
+
+<div class="encabezado-tarjeta">
+          <h2>Docentes</h2>
+          <input
+  class="campo-buscar-tabla"
+  data-tabla="cuerpo-tabla-docentes"
+  type="search"
+  placeholder="Buscar por nombre, número o correo..."
+/>
+        </div>
+
+
   <table>
     <thead>
       <tr>
@@ -384,7 +406,19 @@
 </section>
 
 <section class="tarjeta tarjeta-tabla">
-  <h2>Períodos académicos</h2>
+  <div class="encabezado-tarjeta">
+          <h2>Períodos académicos</h2>
+          <input
+  class="campo-buscar-tabla"
+  data-tabla="cuerpo-tabla-periodos"
+  type="search"
+  placeholder="Buscar por año o número de período..."
+/>
+        </div>
+
+
+
+
 
   <div class="contenedor-tabla">
     <table>
@@ -445,7 +479,15 @@
 </section>
 
 <section class="tarjeta tarjeta-tabla">
-  <h2>Aulas</h2>
+  <div class="encabezado-tarjeta">
+          <h2>Aulas</h2>
+          <input
+  class="campo-buscar-tabla"
+  data-tabla="cuerpo-tabla-aulas"
+  type="search"
+  placeholder="Buscar por código o edificio..."
+/>
+        </div>
 
   <div class="contenedor-tabla">
     <table>
@@ -525,7 +567,15 @@
 </section>
 
 <section class="tarjeta tarjeta-tabla">
-  <h2>Asignaturas</h2>
+  <div class="encabezado-tarjeta">
+          <h2>Asignaturas</h2>
+          <input
+  class="campo-buscar-tabla"
+  data-tabla="cuerpo-tabla-asignaturas"
+  type="search"
+  placeholder="Buscar por nombre, número o carrera..."
+/>
+        </div>
 
   <div class="contenedor-tabla">
     <table>
@@ -621,7 +671,15 @@
 </section>
 
 <section class="tarjeta tarjeta-tabla">
-  <h2>Secciones</h2>
+  <div class="encabezado-tarjeta">
+          <h2>Secciones</h2>
+          <input
+  class="campo-buscar-tabla"
+  data-tabla="cuerpo-tabla-secciones"
+  type="search"
+  placeholder="Buscar por código, asignatura, docente o período..."
+/>
+        </div>
 
   <div class="contenedor-tabla">
     <table>
@@ -676,7 +734,15 @@
 </section>
 
 <section class="tarjeta tarjeta-tabla">
-  <h2>Matrículas</h2>
+<div class="encabezado-tarjeta">
+          <h2>Matrículas</h2>
+          <input
+            class="campo-buscar-tabla"
+            data-tabla="cuerpo-tabla-matriculas"
+            type="search"
+            placeholder="Buscar por cuenta, estudiante, asignatura o sección..."
+          />
+        </div>
 
   <div class="contenedor-tabla">
     <table>
@@ -763,7 +829,15 @@
 </section>
 
 <section class="tarjeta tarjeta-tabla">
-  <h2>Calificaciones registradas</h2>
+  <div class="encabezado-tarjeta">
+          <h2>Calificaciones Registradas</h2>
+          <input
+  class="campo-buscar-tabla"
+  data-tabla="cuerpo-tabla-calificaciones"
+  type="search"
+  placeholder="Buscar por estudiante, asignatura o período..."
+/>
+        </div>
 
   <div class="contenedor-tabla">
     <table>
@@ -812,6 +886,9 @@
     <div class="campo">
       <label for="reporte-docente">Carga de docente</label>
       <select id="reporte-docente"></select>
+      <button type="button" id="boton-reporte-docente">
+        Consultar docente
+      </button>
     </div>
 
     <div class="campo">
@@ -819,8 +896,8 @@
       <select id="reporte-periodo">
         <option value="">Todos los períodos</option>
       </select>
-      <button type="button" id="boton-reporte-docente">
-        Consultar carga
+      <button type="button" id="boton-reporte-periodo">
+        Consultar período
       </button>
     </div>
   </div>

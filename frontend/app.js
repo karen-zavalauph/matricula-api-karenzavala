@@ -12,6 +12,8 @@ const vistaDashboard = document.getElementById("vista-dashboard");
 const layoutDashboard = document.getElementById("layout-dashboard");
 const botonMenu = document.getElementById("boton-menu");
 
+
+
 const formularioLogin = document.getElementById("formulario-login");
 const campoUsuario = document.getElementById("campo-usuario");
 const campoClave = document.getElementById("campo-clave");
@@ -204,6 +206,8 @@ document.querySelectorAll(".menu-lateral [data-destino]").forEach((boton) => {
     mostrarVistaModulo(boton.dataset.destino);
   });
 });
+
+
 
 
 
@@ -520,6 +524,22 @@ campoBuscar.addEventListener("input", () => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //consultar docentes
 async function cargarDocentes() {
   try {
@@ -533,16 +553,16 @@ async function cargarDocentes() {
       const fila = document.createElement("tr");
 
       fila.innerHTML = `
-        <td>${docente.numero_empleado}</td>
-        <td>${docente.nombres} ${docente.apellidos}</td>
-        <td>${docente.correo}</td>
-        <td>${docente.especialidad}</td>
-        <td>${docente.estado}</td>
-        <td>
-          <button type="button" data-accion="editar">Editar</button>
-          <button type="button" data-accion="eliminar">Eliminar</button>
-        </td>
-      `;
+  <td>${docente.numero_empleado}</td>
+  <td>${docente.nombres} ${docente.apellidos}</td>
+  <td>${docente.correo}</td>
+  <td>${docente.especialidad}</td>
+  <td>${pastillaEstado(docente.estado)}</td>
+  <td class="acciones-fila">
+    <button type="button" class="boton-icono" data-accion="editar">Editar</button>
+    <button type="button" class="boton-icono peligro" data-accion="eliminar">Eliminar</button>
+  </td>
+`;
 
       fila.querySelector('[data-accion="editar"]').addEventListener("click", () => {
         editarDocente(docente);
@@ -650,6 +670,13 @@ formularioDocente.addEventListener("submit", (evento) => {
 
 
 
+
+
+
+
+
+
+
 //sección de periodos
 async function cargarPeriodos() {
   try {
@@ -663,15 +690,15 @@ async function cargarPeriodos() {
       const fila = document.createElement("tr");
 
       fila.innerHTML = `
-        <td>${periodo.nombre}</td>
-        <td>${periodo.fecha_inicio}</td>
-        <td>${periodo.fecha_fin}</td>
-        <td>${periodo.activo ? "Sí" : "No"}</td>
-        <td>
-          <button type="button" data-accion="editar">Editar</button>
-          <button type="button" data-accion="eliminar">Eliminar</button>
-        </td>
-      `;
+  <td>${periodo.nombre}</td>
+  <td>${periodo.fecha_inicio}</td>
+  <td>${periodo.fecha_fin}</td>
+  <td>${pastillaEstado(periodo.activo ? "ACTIVO" : "INACTIVO")}</td>
+  <td class="acciones-fila">
+    <button type="button" class="boton-icono" data-accion="editar">Editar</button>
+    <button type="button" class="boton-icono peligro" data-accion="eliminar">Eliminar</button>
+  </td>
+`;
 
       fila.querySelector('[data-accion="editar"]').addEventListener("click", () => {
         editarPeriodo(periodo);
@@ -803,15 +830,15 @@ async function cargarAulas() {
       const fila = document.createElement("tr");
 
       fila.innerHTML = `
-        <td>${aula.codigo}</td>
-        <td>${aula.edificio}</td>
-        <td>${aula.capacidad}</td>
-        <td>${aula.activo ? "Sí" : "No"}</td>
-        <td>
-          <button type="button" data-accion="editar">Editar</button>
-          <button type="button" data-accion="eliminar">Eliminar</button>
-        </td>
-      `;
+  <td>${aula.codigo}</td>
+  <td>${aula.edificio}</td>
+  <td>${aula.capacidad}</td>
+  <td>${pastillaEstado(aula.activo ? "ACTIVO" : "INACTIVO")}</td>
+  <td class="acciones-fila">
+    <button type="button" class="boton-icono" data-accion="editar">Editar</button>
+    <button type="button" class="boton-icono peligro" data-accion="eliminar">Eliminar</button>
+  </td>
+`;
 
       fila.querySelector('[data-accion="editar"]').addEventListener("click", () => {
         editarAula(aula);
@@ -966,17 +993,17 @@ async function cargarAsignaturas() {
       const fila = document.createElement("tr");
 
       fila.innerHTML = `
-        <td>${asignatura.codigo}</td>
-        <td>${asignatura.nombre}</td>
-        <td>${asignatura.unidades_valorativas}</td>
-        <td>${asignatura.carrera_nombre}</td>
-        <td>${asignatura.requisito_codigo ?? "—"}</td>
-        <td>${asignatura.activo ? "Sí" : "No"}</td>
-        <td>
-          <button type="button" data-accion="editar">Editar</button>
-          <button type="button" data-accion="eliminar">Eliminar</button>
-        </td>
-      `;
+  <td>${asignatura.codigo}</td>
+  <td>${asignatura.nombre}</td>
+  <td>${asignatura.unidades_valorativas}</td>
+  <td>${asignatura.carrera_nombre}</td>
+  <td>${asignatura.requisito_codigo ?? "—"}</td>
+  <td>${pastillaEstado(asignatura.activo ? "ACTIVO" : "INACTIVO")}</td>
+  <td class="acciones-fila">
+    <button type="button" class="boton-icono" data-accion="editar">Editar</button>
+    <button type="button" class="boton-icono peligro" data-accion="eliminar">Eliminar</button>
+  </td>
+`;
 
       fila.querySelector('[data-accion="editar"]').addEventListener("click", () => {
         editarAsignatura(asignatura);
@@ -1149,19 +1176,19 @@ async function cargarSecciones() {
       const fila = document.createElement("tr");
 
       fila.innerHTML = `
-        <td>${seccion.codigo}</td>
-        <td>${seccion.asignatura_codigo} — ${seccion.asignatura_nombre}</td>
-        <td>${seccion.docente_nombre}</td>
-        <td>${seccion.periodo_nombre}</td>
-        <td>${seccion.aula_codigo ?? "—"}</td>
-        <td>${seccion.dias}, ${seccion.hora_inicio}–${seccion.hora_fin}</td>
-        <td>${seccion.cupos_disponibles} / ${seccion.cupo_maximo}</td>
-        <td>${seccion.estado}</td>
-        <td>
-          <button type="button" data-accion="editar">Editar</button>
-          <button type="button" data-accion="eliminar">Eliminar</button>
-        </td>
-      `;
+  <td>${seccion.codigo}</td>
+  <td>${seccion.asignatura_codigo} — ${seccion.asignatura_nombre}</td>
+  <td>${seccion.docente_nombre}</td>
+  <td>${seccion.periodo_nombre}</td>
+  <td>${seccion.aula_codigo ?? "—"}</td>
+  <td>${seccion.dias}, ${seccion.hora_inicio}–${seccion.hora_fin}</td>
+  <td>${seccion.cupos_disponibles} / ${seccion.cupo_maximo}</td>
+  <td>${pastillaEstado(seccion.estado)}</td>
+  <td class="acciones-fila">
+    <button type="button" class="boton-icono" data-accion="editar">Editar</button>
+    <button type="button" class="boton-icono peligro" data-accion="eliminar">Eliminar</button>
+  </td>
+`;
 
       fila.querySelector('[data-accion="editar"]').addEventListener("click", () => {
         editarSeccion(seccion);
@@ -1352,20 +1379,20 @@ async function cargarMatriculas() {
       const fila = document.createElement("tr");
 
       const accion =
-        matricula.estado === "MATRICULADA"
-          ? '<button type="button" data-accion="cancelar">Cancelar</button>'
-          : "—";
+  matricula.estado === "MATRICULADA"
+    ? '<button type="button" class="boton-icono peligro" data-accion="cancelar">Cancelar</button>'
+    : "—";
 
       fila.innerHTML = `
-        <td>${matricula.estudiante_cuenta}</td>
-        <td>${matricula.estudiante_nombre}</td>
-        <td>${matricula.asignatura_codigo} — ${matricula.asignatura_nombre}</td>
-        <td>${matricula.seccion_codigo}</td>
-        <td>${matricula.periodo_nombre}</td>
-        <td>${matricula.fecha_matricula}</td>
-        <td>${matricula.estado}</td>
-        <td>${accion}</td>
-      `;
+  <td>${matricula.estudiante_cuenta}</td>
+  <td>${matricula.estudiante_nombre}</td>
+  <td>${matricula.asignatura_codigo} — ${matricula.asignatura_nombre}</td>
+  <td>${matricula.seccion_codigo}</td>
+  <td>${matricula.periodo_nombre}</td>
+  <td>${matricula.fecha_matricula}</td>
+  <td>${pastillaEstado(matricula.estado)}</td>
+  <td class="acciones-fila">${accion}</td>
+`;
 
       const botonCancelar = fila.querySelector('[data-accion="cancelar"]');
       if (botonCancelar) {
@@ -1497,21 +1524,21 @@ async function cargarCalificaciones() {
       const fila = document.createElement("tr");
 
       fila.innerHTML = `
-        <td>${matricula.estudiante_nombre}</td>
-        <td>${matricula.asignatura_codigo} — ${matricula.asignatura_nombre}</td>
-        <td>${matricula.periodo_nombre}</td>
-        <td>
-          ${calificacion.primer_parcial} /
-          ${calificacion.segundo_parcial} /
-          ${calificacion.tercer_parcial}
-        </td>
-        <td>${calificacion.nota_final}</td>
-        <td>${calificacion.resultado}</td>
-        <td>
-          <button type="button" data-accion="editar">Editar</button>
-          <button type="button" data-accion="eliminar">Eliminar</button>
-        </td>
-      `;
+  <td>${matricula.estudiante_nombre}</td>
+  <td>${matricula.asignatura_codigo} — ${matricula.asignatura_nombre}</td>
+  <td>${matricula.periodo_nombre}</td>
+  <td>
+    ${calificacion.primer_parcial} /
+    ${calificacion.segundo_parcial} /
+    ${calificacion.tercer_parcial}
+  </td>
+  <td>${calificacion.nota_final}</td>
+  <td><span class="pastilla-estado pastilla-neutral">${calificacion.resultado}</span></td>
+  <td class="acciones-fila">
+    <button type="button" class="boton-icono" data-accion="editar">Editar</button>
+    <button type="button" class="boton-icono peligro" data-accion="eliminar">Eliminar</button>
+  </td>
+`;
 
       fila.querySelector('[data-accion="editar"]').addEventListener("click", () => {
         editarCalificacion(calificacion);
@@ -1883,4 +1910,49 @@ botonGuardarCarrera.addEventListener("click", guardarCarrera);
 formularioCarrera.addEventListener("submit", (evento) => {
   evento.preventDefault();
   guardarCarrera();
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//conectar buscar
+
+// Búsqueda para las tablas de cada ventana
+document.querySelectorAll(".campo-buscar-tabla").forEach((buscador) => {
+  buscador.addEventListener("input", () => {
+    const tablaId = buscador.dataset.tabla;
+    const cuerpoTabla = document.getElementById(tablaId);
+
+    if (!cuerpoTabla) {
+      console.error(`No se encontró el cuerpo de tabla con id="${tablaId}"`);
+      return;
+    }
+
+    const texto = buscador.value.trim().toLocaleLowerCase("es");
+    const filas = cuerpoTabla.querySelectorAll("tr");
+
+    filas.forEach((fila) => {
+      // Ignora los botones Editar y Eliminar al hacer la búsqueda
+      const filaParaBuscar = fila.cloneNode(true);
+      filaParaBuscar.querySelectorAll(".acciones-fila").forEach((elemento) => {
+        elemento.remove();
+      });
+
+      const contenido = filaParaBuscar.textContent.toLocaleLowerCase("es");
+      fila.hidden = !contenido.includes(texto);
+    });
+  });
 });
