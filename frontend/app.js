@@ -1779,6 +1779,21 @@ document
   });
 
 
+ document
+  .getElementById("boton-reporte-periodo")
+  .addEventListener("click", () => {
+    const id = selectorReportePeriodo.value;
+
+    if (!id) {
+      mensajeReportes.textContent = "Selecciona un período.";
+      return;
+    }
+
+    mostrarReporte(`/reportes/reporte-periodo/${id}`);
+  });
+
+
+
   //cargar tablas de carreras
 async function cargarCarrerasTabla() {
   try {
