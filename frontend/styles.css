@@ -927,3 +927,118 @@ tbody tr:hover td { background: var(--pagina); }
     grid-template-columns: 1fr;
   }
 }
+
+
+
+
+
+/* Evita que el contenido del dashboard fuerce el ancho de la página */
+html {
+  min-width: 320px;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.layout-dashboard {
+  width: 100%;
+  grid-template-columns: minmax(0, 250px) minmax(0, 1fr);
+}
+
+.menu-lateral,
+.contenido,
+.vista-modulo,
+.vista-modulo .tarjeta {
+  min-width: 0;
+}
+
+.contenido {
+  width: 100%;
+  max-width: 100%;
+  padding: clamp(12px, 2vw, 24px);
+}
+
+/* Las tarjetas de inicio se acomodan según el espacio disponible */
+#fila-tarjetas {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+}
+
+.tarjeta-kpi {
+  min-width: 0;
+  padding: clamp(18px, 4vw, 40px);
+}
+
+.tarjeta-kpi .valor {
+  font-size: clamp(24px, 4vw, 40px);
+}
+
+.tarjeta-kpi .etiqueta-kpi {
+  font-size: clamp(16px, 2.5vw, 30px);
+}
+
+/* Mantiene estable el espacio de las tablas cuando cambia la cantidad de filas */
+.vista-modulo .tarjeta-tabla {
+  height: clamp(280px, 55vh, 480px);
+  overflow: auto;
+}
+
+.vista-modulo table {
+  width: 100%;
+  min-width: 700px;
+}
+
+.vista-modulo th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--superficie);
+}
+
+.acciones-fila {
+  white-space: nowrap;
+}
+
+/* En pantallas estrechas, el menú pasa arriba del contenido */
+@media (max-width: 760px) {
+  .layout-dashboard {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .layout-dashboard.menu-plegado {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .menu-lateral {
+    width: 100%;
+  }
+
+  .menu-lateral nav {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .barra-superior {
+    padding: 14px;
+  }
+
+  .acciones-barra {
+    flex-wrap: wrap;
+  }
+
+  .vista-modulo .rejilla-formulario {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .encabezado-tarjeta {
+    align-items: stretch;
+  }
+
+  .campo-buscar-tabla,
+  #campo-buscar {
+    width: 100%;
+    min-width: 0;
+  }
+}

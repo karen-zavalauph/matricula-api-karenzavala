@@ -257,36 +257,80 @@ formularioLogin.addEventListener("submit", async (evento) => {
   }
 });
 
-botonSalir.addEventListener("click", () => {
-  usuarioActual = null;
-  formularioLogin.reset();
-  vistaDashboard.classList.add("oculto");
-  vistaLogin.classList.remove("oculto");
+botonSalir.addEventListener("click", async () => {
+  try {
+    await fetch(`${URL_BASE_API}/auth/logout`, {
+      method: "POST",
+    });
+  } finally {
+    usuarioActual = null;
+    formularioLogin.reset();
+    vistaDashboard.classList.add("oculto");
+    vistaLogin.classList.remove("oculto");
+  }
 });
 
 // ------------------------- Dashboard -------------------------
+
+
+//para que el docente solo vea inicio, matriculas, calificaciones y reportes
+function aplicarPermisosInterfaz() {
+  const permisosPorRol = {
+    ADMIN: null, // null significa que puede ver todos los módulos
+    DOCENTE: ["inicio", "matriculas", "calificaciones", "reportes"],
+    ESTUDIANTE: ["inicio"], // habilitaremos sus ventanas cuando estén listas sus rutas propias
+  };
+
+  const rol = usuarioActual.rol;
+
+  // El administrador no tiene restricciones de interfaz.
+  const permitidos =
+    rol === "ADMIN" ? null : (permisosPorRol[rol] ?? ["inicio"]);
+
+  document.querySelectorAll(".menu-lateral [data-destino]").forEach((boton) => {
+    const destino = boton.dataset.destino;
+    boton.hidden = permitidos !== null && !permitidos.includes(destino);
+  });
+
+  document.querySelectorAll(".vista-modulo").forEach((vista) => {
+    const destino = vista.id.replace("vista-", "");
+    const puedeVer = permitidos === null || permitidos.includes(destino);
+    vista.classList.toggle("oculto", !puedeVer);
+  });
+}
+
+
 
 function mostrarDashboard() {
   vistaLogin.classList.add("oculto");
   vistaDashboard.classList.remove("oculto");
   mostrarVistaModulo("inicio");
+  aplicarPermisosInterfaz();
 
   tituloBienvenida.textContent = `Hola, ${usuarioActual.nombre_completo}`;
   chipUsuario.textContent = `Rol: ${usuarioActual.rol}`;
 
   construirTarjetasVacias();
-  cargarDashboard();
-  cargarCarreras();
-  cargarEstudiantes();
-  cargarDocentes();
-  cargarPeriodos();
-  cargarAulas();
-  cargarAsignaturas();
-  cargarSecciones();
-  cargarMatriculas();
-  cargarCalificaciones();
-  cargarOpcionesReportes();
-  cargarCarrerasTabla();
+
+  if (usuarioActual.rol === "ADMIN") {
+    cargarDashboard();
+    cargarCarreras();
+    cargarEstudiantes();
+    cargarDocentes();
+    cargarPeriodos();
+    cargarAulas();
+    cargarAsignaturas();
+    cargarSecciones();
+    cargarMatriculas();
+    cargarCalificaciones();
+    cargarOpcionesReportes();
+    cargarCarrerasTabla();
+  } else if (usuarioActual.rol === "DOCENTE") {
+    cargarDashboard();
+    cargarMatriculas();
+    cargarCalificaciones();
+    cargarOpcionesReportes();
+  }
 }
 
 function construirTarjetasVacias() {
@@ -506,11 +550,63 @@ function pastillaEstado(estado) {
   const etiquetas = { INACTIVO: "Inactivo", GRADUADO: "Graduado" };
   return `<span class="pastilla-estado pastilla-neutral">${etiquetas[estado] ?? estado}</span>`;
 }
+//Botón "Actualizar" para recargar todos los datos del dashboard y las tablas
+botonActualizar.addEventListener("click", async () => {
 
-botonActualizar.addEventListener("click", () => {
-  cargarDashboard();
-  cargarEstudiantes(campoBuscar.value.trim());
+
+
+
+  // Limpiar mensajes anteriores
+  vistaDashboard
+    .querySelectorAll(".mensaje-error, .mensaje-exito")
+    .forEach((mensaje) => {
+      mensaje.textContent = "";
+
+      if (mensaje.classList.contains("mensaje-exito")) {
+        mensaje.classList.replace("mensaje-exito", "mensaje-error");
+      }
+    });
+
+  resultadoReporte.textContent = "Selecciona un reporte para consultar.";
+
+  const textoOriginal = botonActualizar.textContent;
+
+  botonActualizar.disabled = true;
+  botonActualizar.textContent = "Actualizando...";
+
+
+
+  try {
+   const tareas =
+  usuarioActual?.rol === "ADMIN"
+    ? [
+        cargarDashboard(),
+        cargarCarreras(),
+        cargarCarrerasTabla(),
+        cargarEstudiantes(campoBuscar.value.trim()),
+        cargarDocentes(),
+        cargarPeriodos(),
+        cargarAulas(),
+        cargarAsignaturas(),
+        cargarSecciones(),
+        cargarMatriculas(),
+        cargarCalificaciones(),
+        cargarOpcionesReportes(),
+      ]
+    : [
+        cargarDashboard(),
+        cargarMatriculas(),
+        cargarCalificaciones(),
+      ];
+
+await Promise.all(tareas);
+  } finally {
+    botonActualizar.disabled = false;
+    botonActualizar.textContent = textoOriginal;
+  }
 });
+
+
 
 campoBuscar.addEventListener("input", () => {
   clearTimeout(temporizadorBusqueda);
@@ -1330,23 +1426,24 @@ formularioSeccion.addEventListener("submit", (evento) => {
 //cargar matrículas
 async function cargarMatriculas() {
   try {
-    const rutas = [
-      "/matriculas",
-      "/estudiantes",
-      "/secciones/disponibles",
-    ];
+   const rutas = ["/matriculas", "/matriculas/opciones"];
 
-    const respuestas = await Promise.all(
-      rutas.map((ruta) => fetch(`${URL_BASE_API}${ruta}`))
-    );
+const respuestas = await Promise.all(
+  rutas.map((ruta) => fetch(`${URL_BASE_API}${ruta}`))
+);
 
-    if (respuestas.some((respuesta) => !respuesta.ok)) {
-      throw new Error("No se pudieron cargar los datos de matrículas");
-    }
+if (respuestas.some((respuesta) => !respuesta.ok)) {
+  throw new Error("No se pudieron cargar los datos de matrículas");
+}
 
-    const [matriculas, estudiantes, secciones] = await Promise.all(
-      respuestas.map((respuesta) => respuesta.json())
-    );
+const [matriculas, opciones] = await Promise.all(
+  respuestas.map((respuesta) => respuesta.json())
+);
+
+
+
+
+const { estudiantes, secciones } = opciones;
 
     campoMatriculaEstudiante.innerHTML =
       '<option value="">Seleccione un estudiante</option>';
@@ -1655,24 +1752,17 @@ formularioCalificacion.addEventListener("submit", (evento) => {
 
 async function cargarOpcionesReportes() {
   try {
-    const rutas = [
-      "/estudiantes",
-      "/secciones",
-      "/docentes",
-      "/periodos",
-    ];
+   
 
-    const respuestas = await Promise.all(
-      rutas.map((ruta) => fetch(`${URL_BASE_API}${ruta}`))
-    );
+    const respuesta = await fetch(`${URL_BASE_API}/reportes/opciones`);
 
-    if (respuestas.some((respuesta) => !respuesta.ok)) {
-      throw new Error("No se pudieron cargar las opciones de reportes");
-    }
+if (!respuesta.ok) {
+  throw new Error("No se pudieron cargar las opciones de reportes");
+}
 
-    const [estudiantes, secciones, docentes, periodos] = await Promise.all(
-      respuestas.map((respuesta) => respuesta.json())
-    );
+const { estudiantes, secciones, docentes, periodos } =
+  await respuesta.json();
+
 
     selectorReporteEstudiante.innerHTML =
       '<option value="">Seleccione un estudiante</option>';
@@ -1712,7 +1802,10 @@ async function cargarOpcionesReportes() {
       opcion.textContent = periodo.nombre;
       selectorReportePeriodo.appendChild(opcion);
     });
-  } catch (error) {
+  } 
+  
+  
+  catch (error) {
     mensajeReportes.textContent =
       "No se pudieron cargar los datos para los reportes.";
   }
@@ -1793,6 +1886,9 @@ document
   });
 
 
+
+
+  
 
   //cargar tablas de carreras
 async function cargarCarrerasTabla() {

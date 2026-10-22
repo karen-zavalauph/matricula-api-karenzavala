@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.database import conexion_lectura, transaccion
 from app.helpers import filas_a_lista, obtener_o_404
@@ -7,9 +7,13 @@ from app.schemas import (
     CalificacionRespuesta,
     MensajeRespuesta,
 )
+from app.routers.auth import requiere_roles
 
-
-router = APIRouter(prefix="/calificaciones", tags=["Calificaciones"])
+router = APIRouter(
+    prefix="/calificaciones",
+    tags=["Calificaciones"],
+    dependencies=[Depends(requiere_roles("ADMIN", "DOCENTE"))],
+)
 
 
 def _respuesta_calificacion(fila) -> dict:

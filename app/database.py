@@ -176,6 +176,25 @@ def crear_tablas() -> None:
         creado_en TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
+
+
+
+
+
+
+    CREATE TABLE IF NOT EXISTS sesiones (
+    token_hash TEXT PRIMARY KEY,
+    usuario_id INTEGER NOT NULL,
+    expira_en INTEGER NOT NULL,
+    creado_en TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+);
+
+
+
+
+
+
     CREATE INDEX IF NOT EXISTS idx_estudiantes_carrera
         ON estudiantes(carrera_id);
     CREATE INDEX IF NOT EXISTS idx_secciones_periodo

@@ -8,7 +8,7 @@ EstadoEstudiante = Literal["ACTIVO", "INACTIVO", "GRADUADO"]
 EstadoDocente = Literal["ACTIVO", "INACTIVO"]
 EstadoSeccion = Literal["ABIERTA", "CERRADA", "FINALIZADA"]
 EstadoMatricula = Literal["MATRICULADA", "CANCELADA", "APROBADA", "REPROBADA"]
-RolUsuario = Literal["ADMIN", "DOCENTE"]
+RolUsuario = Literal["ADMIN", "DOCENTE", "ESTUDIANTE"]
 
 
 class MensajeRespuesta(BaseModel):

@@ -1,13 +1,18 @@
 import sqlite3
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.database import conexion_lectura, transaccion
 from app.helpers import filas_a_lista, obtener_o_404
 from app.schemas import EstudianteEntrada, EstudianteRespuesta, MensajeRespuesta
+from app.routers.auth import requiere_roles
 
 
-router = APIRouter(prefix="/estudiantes", tags=["Estudiantes"])
+router = APIRouter(
+    prefix="/estudiantes",
+    tags=["Estudiantes"],
+    dependencies=[Depends(requiere_roles("ADMIN"))],
+)
 
 
 CONSULTA_BASE = """

@@ -1,12 +1,16 @@
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.database import conexion_lectura, transaccion
 from app.helpers import filas_a_lista, obtener_o_404
 from app.schemas import MatriculaEntrada, MatriculaRespuesta, MensajeRespuesta
 from app.services.matricula_service import validar_nueva_matricula
+from app.routers.auth import requiere_roles
 
-
-router = APIRouter(prefix="/matriculas", tags=["Matrículas"])
+router = APIRouter(
+    prefix="/matriculas",
+    tags=["Matrículas"],
+    dependencies=[Depends(requiere_roles("ADMIN", "DOCENTE" ))],
+)
 
 
 CONSULTA_BASE = """
@@ -22,6 +26,52 @@ CONSULTA_BASE = """
     JOIN asignaturas a ON a.id = s.asignatura_id
     JOIN periodos p ON p.id = s.periodo_id
 """
+
+
+@router.get("/opciones")
+def obtener_opciones_matricula():
+    with conexion_lectura() as conexion:
+        estudiantes = conexion.execute(
+            """
+            SELECT id, cuenta, nombres, apellidos, estado
+            FROM estudiantes
+            WHERE estado = 'ACTIVO'
+            ORDER BY apellidos, nombres
+            """
+        ).fetchall()
+
+        secciones = conexion.execute(
+            """
+            SELECT
+                s.id,
+                s.codigo,
+                a.codigo AS asignatura_codigo,
+                p.anio || '-' || p.numero AS periodo_nombre,
+                s.cupo_maximo - COUNT(
+                    CASE WHEN m.estado <> 'CANCELADA' THEN 1 END
+                ) AS cupos_disponibles
+            FROM secciones s
+            JOIN asignaturas a ON a.id = s.asignatura_id
+            JOIN periodos p ON p.id = s.periodo_id
+            LEFT JOIN matriculas m ON m.seccion_id = s.id
+            WHERE s.estado = 'ABIERTA'
+              AND p.activo = 1
+            GROUP BY
+                s.id,
+                s.codigo,
+                a.codigo,
+                p.anio,
+                p.numero,
+                s.cupo_maximo
+            HAVING cupos_disponibles > 0
+            ORDER BY a.codigo, s.codigo
+            """
+        ).fetchall()
+
+    return {
+        "estudiantes": filas_a_lista(estudiantes),
+        "secciones": filas_a_lista(secciones),
+    }
 
 
 @router.get("", response_model=list[MatriculaRespuesta])

@@ -1,13 +1,17 @@
 import sqlite3
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.database import conexion_lectura, transaccion
 from app.helpers import obtener_o_404
 from app.schemas import MensajeRespuesta, PeriodoEntrada, PeriodoRespuesta
+from app.routers.auth import requiere_roles
 
-
-router = APIRouter(prefix="/periodos", tags=["Períodos académicos"])
+router = APIRouter(
+    prefix="/periodos",
+    tags=["Períodos académicos"],
+    dependencies=[Depends(requiere_roles("ADMIN"))],
+)
 
 
 def _periodo_respuesta(fila) -> dict:

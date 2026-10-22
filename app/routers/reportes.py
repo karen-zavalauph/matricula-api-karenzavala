@@ -1,10 +1,69 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.database import conexion_lectura
 from app.helpers import filas_a_lista, obtener_o_404
+from app.routers.auth import requiere_roles
 
 
-router = APIRouter(prefix="/reportes", tags=["Reportes y consultas avanzadas"])
+router = APIRouter(
+    prefix="/reportes",
+    tags=["Reportes y consultas avanzadas"],
+    dependencies=[Depends(requiere_roles("ADMIN", "DOCENTE"))],
+)
+
+
+
+
+@router.get("/opciones")
+def obtener_opciones_reportes():
+    with conexion_lectura() as conexion:
+        estudiantes = conexion.execute(
+            """
+            SELECT id, cuenta, nombres, apellidos
+            FROM estudiantes
+            ORDER BY apellidos, nombres
+            """
+        ).fetchall()
+
+        secciones = conexion.execute(
+            """
+            SELECT
+                s.id,
+                s.codigo,
+                a.codigo AS asignatura_codigo,
+                p.anio || '-' || p.numero AS periodo_nombre
+            FROM secciones s
+            JOIN asignaturas a ON a.id = s.asignatura_id
+            JOIN periodos p ON p.id = s.periodo_id
+            ORDER BY p.anio DESC, p.numero DESC, a.codigo, s.codigo
+            """
+        ).fetchall()
+
+        docentes = conexion.execute(
+            """
+            SELECT id, nombres, apellidos
+            FROM docentes
+            ORDER BY apellidos, nombres
+            """
+        ).fetchall()
+
+        periodos = conexion.execute(
+            """
+            SELECT
+                id,
+                anio || '-' || numero AS nombre
+            FROM periodos
+            ORDER BY anio DESC, numero DESC
+            """
+        ).fetchall()
+
+    return {
+        "estudiantes": filas_a_lista(estudiantes),
+        "secciones": filas_a_lista(secciones),
+        "docentes": filas_a_lista(docentes),
+        "periodos": filas_a_lista(periodos),
+    }
+
 
 
 @router.get("/dashboard")
@@ -183,3 +242,66 @@ def carga_docente(
         "secciones": filas_a_lista(secciones),
     }
 
+
+
+@router.get("/reporte-periodo/{periodo_id}")
+def reporte_periodo(periodo_id: int):
+    with conexion_lectura() as conexion:
+        periodo = conexion.execute(
+            """
+            SELECT id, anio, numero
+            FROM periodos
+            WHERE id = ?
+            """,
+            (periodo_id,),
+        ).fetchone()
+
+        if periodo is None:
+            raise HTTPException(404, "Período no encontrado")
+
+        total_secciones = conexion.execute(
+            """
+            SELECT COUNT(*)
+            FROM secciones
+            WHERE periodo_id = ?
+            """,
+            (periodo_id,),
+        ).fetchone()[0]
+
+        matriculas = conexion.execute(
+            """
+            SELECT
+                e.cuenta,
+                e.nombres || ' ' || e.apellidos AS estudiante,
+                a.codigo AS asignatura_codigo,
+                a.nombre AS asignatura,
+                s.codigo AS seccion,
+                d.nombres || ' ' || d.apellidos AS docente,
+                m.estado AS estado_matricula,
+                cal.primer_parcial,
+                cal.segundo_parcial,
+                cal.tercer_parcial,
+                cal.nota_final
+            FROM matriculas m
+            JOIN estudiantes e ON e.id = m.estudiante_id
+            JOIN secciones s ON s.id = m.seccion_id
+            JOIN asignaturas a ON a.id = s.asignatura_id
+            JOIN docentes d ON d.id = s.docente_id
+            LEFT JOIN calificaciones cal ON cal.matricula_id = m.id
+            WHERE s.periodo_id = ?
+            ORDER BY a.codigo, s.codigo, e.apellidos, e.nombres
+            """,
+            (periodo_id,),
+        ).fetchall()
+
+    return {
+        "periodo": {
+            "id": periodo["id"],
+            "anio": periodo["anio"],
+            "numero": periodo["numero"],
+            "nombre": f'{periodo["anio"]}-{periodo["numero"]}',
+        },
+        "total_secciones": total_secciones,
+        "total_matriculas": len(matriculas),
+        "matriculas": filas_a_lista(matriculas),
+    }
