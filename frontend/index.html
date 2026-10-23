@@ -85,6 +85,15 @@
       <button type="button" data-destino="matriculas">Matrículas</button>
       <button type="button" data-destino="calificaciones">Calificaciones</button>
       <button type="button" data-destino="reportes">Reportes</button>
+
+<button type="button" data-destino="mis-matriculas">
+  Mis matrículas
+</button>
+<button type="button" data-destino="mis-calificaciones">
+  Mis calificaciones
+</button>
+
+      <button type="button" data-destino="usuarios">Usuarios</button>
     </nav>
   </aside>
 
@@ -861,6 +870,51 @@
 
 
 
+<!-- Esto solo puede verlo el estudiante, pero no editar -->
+<section id="vista-mis-matriculas" class="vista-modulo oculto">
+  <section class="tarjeta tarjeta-tabla">
+    <h2>Mis matrículas</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Asignatura</th>
+          <th>Nombre</th>
+          <th>Sección</th>
+          <th>Período</th>
+          <th>Fecha</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody id="cuerpo-tabla-mis-matriculas"></tbody>
+    </table>
+  </section>
+</section>
+
+<section id="vista-mis-calificaciones" class="vista-modulo oculto">
+  <section class="tarjeta tarjeta-tabla">
+    <h2>Mis calificaciones</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Asignatura</th>
+          <th>Sección</th>
+          <th>Período</th>
+          <th>Parcial 1</th>
+          <th>Parcial 2</th>
+          <th>Parcial 3</th>
+          <th>Nota final</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody id="cuerpo-tabla-mis-calificaciones"></tbody>
+    </table>
+  </section>
+</section>
+
+
+
 <section id="vista-reportes" class="vista-modulo oculto">
 <!-- Reportes -->
 <section class="tarjeta">
@@ -908,6 +962,132 @@
   <pre id="resultado-reporte">Selecciona un reporte para consultar.</pre>
 </section>
 </section>
+
+
+
+
+<!-- Usuarios -->
+<section id="vista-usuarios" class="vista-modulo oculto">
+  <section class="tarjeta tarjeta-formulario">
+    <h2>Crear usuario</h2>
+
+    <form id="formulario-usuario" class="rejilla-formulario">
+      <div class="campo">
+        <label for="usuario-nombre">Nombre de usuario</label>
+        <input
+          id="usuario-nombre"
+          type="text"
+          minlength="3"
+          maxlength="40"
+          required
+        />
+      </div>
+
+      <div class="campo">
+        <label for="usuario-nombre-completo">Nombre completo</label>
+        <input
+          id="usuario-nombre-completo"
+          type="text"
+          minlength="2"
+          maxlength="120"
+          required
+        />
+      </div>
+
+      <div class="campo">
+        <label for="usuario-clave">Contraseña inicial</label>
+        <input
+          id="usuario-clave"
+          type="password"
+          minlength="8"
+          maxlength="100"
+          required
+        />
+      </div>
+
+      <div class="campo">
+        <label for="usuario-rol">Rol</label>
+        <select id="usuario-rol" required>
+          <option value="">Selecciona un rol</option>
+          <option value="DOCENTE">Docente</option>
+          <option value="ESTUDIANTE">Estudiante</option>
+        </select>
+      </div>
+
+      <div class="campo oculto" id="campo-vinculo-estudiante">
+        <label for="usuario-estudiante">Registro del estudiante</label>
+        <select id="usuario-estudiante">
+          <option value="">Selecciona un estudiante</option>
+        </select>
+      </div>
+
+      <div class="campo">
+        <label for="usuario-activo">Estado de la cuenta</label>
+        <select id="usuario-activo">
+          <option value="true">Activa</option>
+          <option value="false">Inactiva</option>
+        </select>
+      </div>
+
+      <div class="acciones-formulario">
+        <button type="submit" id="boton-guardar-usuario">
+          Crear usuario
+        </button>
+      </div>
+    </form>
+
+    <p id="mensaje-usuario" class="mensaje-error" aria-live="polite"></p>
+  </section>
+
+  <section class="tarjeta tarjeta-tabla">
+  <h2>Administradores</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Usuario</th>
+        <th>Nombre completo</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="cuerpo-tabla-usuarios-admin"></tbody>
+  </table>
+</section>
+
+<section class="tarjeta tarjeta-tabla">
+  <h2>Docentes</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Usuario</th>
+        <th>Nombre completo</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="cuerpo-tabla-usuarios-docentes"></tbody>
+  </table>
+</section>
+
+<section class="tarjeta tarjeta-tabla">
+  <h2>Estudiantes</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Usuario</th>
+        <th>Nombre completo</th>
+        <th>ID estudiante</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="cuerpo-tabla-usuarios-estudiantes"></tbody>
+  </table>
+</section>
+</section>
+
+
+
 
 
 

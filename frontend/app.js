@@ -167,6 +167,41 @@ const resultadoReporte = document.getElementById("resultado-reporte");
 
 
 
+//Referencias a usuarios
+
+const formularioUsuario = document.getElementById("formulario-usuario");
+const campoUsuarioNombre = document.getElementById("usuario-nombre");
+const campoUsuarioNombreCompleto =
+  document.getElementById("usuario-nombre-completo");
+const campoUsuarioClave = document.getElementById("usuario-clave");
+const campoUsuarioRol = document.getElementById("usuario-rol");
+const campoUsuarioEstudiante =
+  document.getElementById("usuario-estudiante");
+const contenedorEstudiante =
+  document.getElementById("campo-vinculo-estudiante");
+const campoUsuarioActivo = document.getElementById("usuario-activo");
+//referencias a separar tablas de usuarios por rol
+const cuerpoTablaUsuariosAdmin =
+  document.getElementById("cuerpo-tabla-usuarios-admin");
+const cuerpoTablaUsuariosDocentes =
+  document.getElementById("cuerpo-tabla-usuarios-docentes");
+const cuerpoTablaUsuariosEstudiantes =
+  document.getElementById("cuerpo-tabla-usuarios-estudiantes");
+
+const mensajeUsuario = document.getElementById("mensaje-usuario");
+
+
+
+//referencias a portal estudiante
+const cuerpoTablaMisMatriculas =
+  document.getElementById("cuerpo-tabla-mis-matriculas");
+const cuerpoTablaMisCalificaciones =
+  document.getElementById("cuerpo-tabla-mis-calificaciones");
+
+
+
+
+
 //manejador botón menú plegable
 botonMenu.addEventListener("click", () => {
   const plegado = layoutDashboard.classList.toggle("menu-plegado");
@@ -174,6 +209,7 @@ botonMenu.addEventListener("click", () => {
 });
 
 let usuarioActual = null;
+let usuarioEnEdicionId = null;
 let temporizadorBusqueda = null;
 
 
@@ -276,26 +312,38 @@ botonSalir.addEventListener("click", async () => {
 //para que el docente solo vea inicio, matriculas, calificaciones y reportes
 function aplicarPermisosInterfaz() {
   const permisosPorRol = {
-    ADMIN: null, // null significa que puede ver todos los módulos
+    ADMIN: [
+      "inicio",
+      "carreras",
+      "estudiantes",
+      "docentes",
+      "periodos",
+      "aulas",
+      "asignaturas",
+      "secciones",
+      "matriculas",
+      "calificaciones",
+      "reportes",
+      "usuarios",
+    ],
     DOCENTE: ["inicio", "matriculas", "calificaciones", "reportes"],
-    ESTUDIANTE: ["inicio"], // habilitaremos sus ventanas cuando estén listas sus rutas propias
+    ESTUDIANTE: ["inicio", "mis-matriculas", "mis-calificaciones"],
   };
 
-  const rol = usuarioActual.rol;
-
-  // El administrador no tiene restricciones de interfaz.
-  const permitidos =
-    rol === "ADMIN" ? null : (permisosPorRol[rol] ?? ["inicio"]);
+  const permitidos = permisosPorRol[usuarioActual.rol] ?? ["inicio"];
 
   document.querySelectorAll(".menu-lateral [data-destino]").forEach((boton) => {
-    const destino = boton.dataset.destino;
-    boton.hidden = permitidos !== null && !permitidos.includes(destino);
+    boton.hidden = !permitidos.includes(boton.dataset.destino);
   });
 
+  // Oculta las vistas no permitidas.
+  // Las permitidas siguen ocultas hasta que se pulsen en el menú.
   document.querySelectorAll(".vista-modulo").forEach((vista) => {
     const destino = vista.id.replace("vista-", "");
-    const puedeVer = permitidos === null || permitidos.includes(destino);
-    vista.classList.toggle("oculto", !puedeVer);
+
+    if (!permitidos.includes(destino)) {
+      vista.classList.add("oculto");
+    }
   });
 }
 
@@ -311,6 +359,10 @@ function mostrarDashboard() {
   chipUsuario.textContent = `Rol: ${usuarioActual.rol}`;
 
   construirTarjetasVacias();
+  filaTarjetas.classList.toggle(
+  "oculto",
+  usuarioActual.rol === "ESTUDIANTE"
+);
 
   if (usuarioActual.rol === "ADMIN") {
     cargarDashboard();
@@ -331,6 +383,11 @@ function mostrarDashboard() {
     cargarCalificaciones();
     cargarOpcionesReportes();
   }
+
+  else if (usuarioActual.rol === "ESTUDIANTE") {
+  cargarMisMatriculas();
+  cargarMisCalificaciones();
+}
 }
 
 function construirTarjetasVacias() {
@@ -592,6 +649,7 @@ botonActualizar.addEventListener("click", async () => {
         cargarMatriculas(),
         cargarCalificaciones(),
         cargarOpcionesReportes(),
+        cargarUsuarios(),
       ]
     : [
         cargarDashboard(),
@@ -2067,3 +2125,395 @@ document.querySelectorAll(".campo-buscar-tabla").forEach((buscador) => {
     });
   });
 });
+
+
+
+
+
+//funciiones para usuarios
+function llenarTablaUsuarios(cuerpo, usuarios, esTablaEstudiantes = false) {
+  cuerpo.innerHTML = "";
+
+  if (usuarios.length === 0) {
+    const fila = document.createElement("tr");
+    const celda = document.createElement("td");
+
+    celda.colSpan = esTablaEstudiantes ? 5 : 4;
+    celda.textContent = "No hay cuentas en esta categoría.";
+    fila.appendChild(celda);
+    cuerpo.appendChild(fila);
+    return;
+  }
+
+  usuarios.forEach((usuario) => {
+    const fila = document.createElement("tr");
+
+    const valores = [
+      usuario.usuario,
+      usuario.nombre_completo,
+      ...(esTablaEstudiantes ? [usuario.estudiante_id ?? "—"] : []),
+      usuario.activo ? "Activa" : "Inactiva",
+    ];
+
+    valores.forEach((valor) => {
+      const celda = document.createElement("td");
+      celda.textContent = String(valor);
+      fila.appendChild(celda);
+    });
+
+    const celdaAcciones = document.createElement("td");
+    celdaAcciones.className = "acciones-fila";
+
+    const botonEditar = document.createElement("button");
+    botonEditar.type = "button";
+    botonEditar.className = "boton-icono";
+    botonEditar.textContent = "Editar";
+    botonEditar.addEventListener("click", () => prepararEdicionUsuario(usuario));
+
+    const botonClave = document.createElement("button");
+    botonClave.type = "button";
+    botonClave.className = "boton-icono";
+    botonClave.textContent = "Cambiar contraseña";
+    botonClave.addEventListener("click", () => cambiarClaveUsuario(usuario));
+
+    celdaAcciones.append(botonEditar, botonClave);
+    fila.appendChild(celdaAcciones);
+    cuerpo.appendChild(fila);
+  });
+}
+
+
+
+async function cargarUsuarios() {
+  try {
+    const respuesta = await fetch(`${URL_BASE_API}/usuarios`);
+
+    if (!respuesta.ok) {
+      throw new Error("No se pudieron cargar los usuarios.");
+    }
+
+    const usuarios = await respuesta.json();
+
+    llenarTablaUsuarios(
+      cuerpoTablaUsuariosAdmin,
+      usuarios.filter((usuario) => usuario.rol === "ADMIN")
+    );
+
+    llenarTablaUsuarios(
+      cuerpoTablaUsuariosDocentes,
+      usuarios.filter((usuario) => usuario.rol === "DOCENTE")
+    );
+
+    llenarTablaUsuarios(
+      cuerpoTablaUsuariosEstudiantes,
+      usuarios.filter((usuario) => usuario.rol === "ESTUDIANTE"),
+      true
+    );
+  } catch (error) {
+    cuerpoTablaUsuariosAdmin.innerHTML = "";
+    cuerpoTablaUsuariosDocentes.innerHTML = "";
+    cuerpoTablaUsuariosEstudiantes.innerHTML = "";
+    mensajeUsuario.textContent = "No se pudieron cargar las cuentas.";
+  }
+}
+
+async function cargarEstudiantesParaUsuario() {
+  try {
+    const respuesta = await fetch(`${URL_BASE_API}/estudiantes`);
+
+    if (!respuesta.ok) {
+      throw new Error("No se pudieron cargar los estudiantes");
+    }
+
+    const estudiantes = await respuesta.json();
+    campoUsuarioEstudiante.innerHTML =
+      '<option value="">Selecciona un estudiante</option>';
+
+    estudiantes.forEach((estudiante) => {
+      const opcion = document.createElement("option");
+      opcion.value = estudiante.id;
+      opcion.textContent =
+        `${estudiante.cuenta} — ${estudiante.nombres} ${estudiante.apellidos}`;
+      campoUsuarioEstudiante.appendChild(opcion);
+    });
+  } catch (error) {
+    mensajeUsuario.textContent =
+      "No se pudo cargar la lista de estudiantes para vincular.";
+  }
+}
+
+
+campoUsuarioRol.addEventListener("change", async () => {
+  const esEstudiante = campoUsuarioRol.value === "ESTUDIANTE";
+
+  contenedorEstudiante.classList.toggle("oculto", !esEstudiante);
+  campoUsuarioEstudiante.required = esEstudiante;
+
+  if (esEstudiante) {
+    await cargarEstudiantesParaUsuario();
+  } else {
+    campoUsuarioEstudiante.value = "";
+  }
+});
+
+
+
+
+
+formularioUsuario.addEventListener("submit", async (evento) => {
+  evento.preventDefault();
+  mensajeUsuario.textContent = "";
+
+  if (!formularioUsuario.reportValidity()) return;
+
+  const id = usuarioEnEdicionId;
+  const rol = campoUsuarioRol.value;
+
+  const datos = {
+    nombre_completo: campoUsuarioNombreCompleto.value.trim(),
+    rol,
+    activo: campoUsuarioActivo.value === "true",
+    estudiante_id:
+      rol === "ESTUDIANTE"
+        ? Number(campoUsuarioEstudiante.value)
+        : null,
+  };
+
+  if (!id) {
+    datos.usuario = campoUsuarioNombre.value.trim();
+    datos.clave = campoUsuarioClave.value;
+  }
+
+  const boton = formularioUsuario.querySelector('button[type="submit"]');
+  boton.disabled = true;
+  boton.textContent = id ? "Guardando..." : "Creando...";
+
+  try {
+    const respuesta = await fetch(
+      id
+        ? `${URL_BASE_API}/usuarios/${id}`
+        : `${URL_BASE_API}/usuarios`,
+      {
+        method: id ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(datos),
+      }
+    );
+
+    const resultado = await respuesta.json().catch(() => null);
+
+    if (!respuesta.ok) {
+      throw new Error(
+        resultado?.detail ?? "No se pudo guardar el usuario."
+      );
+    }
+
+    formularioUsuario.reset();
+    usuarioEnEdicionId = null;
+    campoUsuarioNombre.disabled = false;
+    campoUsuarioClave.required = true;
+    campoUsuarioEstudiante.required = false;
+    contenedorEstudiante.classList.add("oculto");
+
+    document.querySelector("#vista-usuarios .tarjeta-formulario h2").textContent =
+      "Crear usuario";
+    mensajeUsuario.textContent = id
+      ? "Usuario actualizado correctamente."
+      : "Usuario creado correctamente.";
+
+    await cargarUsuarios();
+  } catch (error) {
+    mensajeUsuario.textContent =
+      typeof error.message === "string"
+        ? error.message
+        : "No se pudo guardar el usuario.";
+  } finally {
+    boton.disabled = false;
+    boton.textContent = usuarioEnEdicionId
+  ? "Guardar cambios"
+  : "Crear usuario";
+  }
+});
+
+
+
+
+//funciones portal del estudiante
+
+function renderizarTablaSoloLectura(cuerpo, filas, columnas, mensajeVacio) {
+  cuerpo.innerHTML = "";
+
+  if (filas.length === 0) {
+    const fila = document.createElement("tr");
+    const celda = document.createElement("td");
+
+    celda.colSpan = columnas.length;
+    celda.textContent = mensajeVacio;
+    fila.appendChild(celda);
+    cuerpo.appendChild(fila);
+    return;
+  }
+
+  filas.forEach((dato) => {
+    const fila = document.createElement("tr");
+
+    columnas.forEach((columna) => {
+      const celda = document.createElement("td");
+      const valor = dato[columna] ?? "—";
+      celda.textContent = String(valor);
+      fila.appendChild(celda);
+    });
+
+    cuerpo.appendChild(fila);
+  });
+}
+
+async function cargarMisMatriculas() {
+  try {
+    const respuesta = await fetch(`${URL_BASE_API}/mi-cuenta/matriculas`);
+    if (!respuesta.ok) throw new Error();
+
+    const matriculas = await respuesta.json();
+
+    renderizarTablaSoloLectura(
+      cuerpoTablaMisMatriculas,
+      matriculas,
+      [
+        "asignatura_codigo",
+        "asignatura_nombre",
+        "seccion_codigo",
+        "periodo_nombre",
+        "fecha_matricula",
+        "estado",
+      ],
+      "No tienes matrículas registradas."
+    );
+  } catch (error) {
+    renderizarTablaSoloLectura(
+      cuerpoTablaMisMatriculas,
+      [],
+      ["", "", "", "", "", ""],
+      "No se pudieron cargar tus matrículas."
+    );
+  }
+}
+
+async function cargarMisCalificaciones() {
+  try {
+    const respuesta = await fetch(`${URL_BASE_API}/mi-cuenta/calificaciones`);
+    if (!respuesta.ok) throw new Error();
+
+    const calificaciones = await respuesta.json();
+
+    renderizarTablaSoloLectura(
+      cuerpoTablaMisCalificaciones,
+      calificaciones,
+      [
+        "asignatura_codigo",
+        "seccion_codigo",
+        "periodo_nombre",
+        "primer_parcial",
+        "segundo_parcial",
+        "tercer_parcial",
+        "nota_final",
+        "estado_matricula",
+      ],
+      "No tienes calificaciones registradas."
+    );
+  } catch (error) {
+    renderizarTablaSoloLectura(
+      cuerpoTablaMisCalificaciones,
+      [],
+      ["", "", "", "", "", "", "", ""],
+      "No se pudieron cargar tus calificaciones."
+    );
+  }
+}
+
+
+
+//función para cambiar la contraseña del usuario actual
+async function cambiarClaveUsuario(usuario) {
+  const nuevaClave = window.prompt(
+    `Escribe la nueva contraseña para ${usuario.usuario} (mínimo 8 caracteres):`
+  );
+
+  if (nuevaClave === null) return;
+
+  if (nuevaClave.length < 8) {
+    mensajeUsuario.textContent =
+      "La contraseña debe tener al menos 8 caracteres.";
+    return;
+  }
+
+  try {
+    const respuesta = await fetch(
+      `${URL_BASE_API}/usuarios/${usuario.id}/clave`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clave: nuevaClave }),
+      }
+    );
+
+    const resultado = await respuesta.json().catch(() => null);
+
+    if (!respuesta.ok) {
+      throw new Error(
+        resultado?.detail ?? "No se pudo cambiar la contraseña."
+      );
+    }
+
+    mensajeUsuario.textContent =
+      `Contraseña actualizada para ${usuario.usuario}.`;
+  } catch (error) {
+    mensajeUsuario.textContent = error.message;
+  }
+}
+
+
+
+
+//función para editar un usuario existente
+
+async function prepararEdicionUsuario(usuario) {
+  usuarioEnEdicionId = usuario.id;
+  formularioUsuario.reset();
+  mensajeUsuario.textContent = "";
+
+  campoUsuarioNombre.value = usuario.usuario;
+  campoUsuarioNombre.disabled = true;
+  campoUsuarioNombreCompleto.value = usuario.nombre_completo;
+  campoUsuarioClave.value = "";
+  campoUsuarioClave.required = false;
+  campoUsuarioRol.value = usuario.rol;
+  campoUsuarioActivo.value = String(Boolean(usuario.activo));
+
+  // Agrega el rol ADMIN al selector si se está editando una cuenta ADMIN.
+  if (usuario.rol === "ADMIN" && !campoUsuarioRol.querySelector('option[value="ADMIN"]')) {
+    const opcionAdmin = document.createElement("option");
+    opcionAdmin.value = "ADMIN";
+    opcionAdmin.textContent = "Administrador";
+    campoUsuarioRol.appendChild(opcionAdmin);
+    campoUsuarioRol.value = "ADMIN";
+  }
+
+  const esEstudiante = usuario.rol === "ESTUDIANTE";
+  contenedorEstudiante.classList.toggle("oculto", !esEstudiante);
+  campoUsuarioEstudiante.required = esEstudiante;
+
+  if (esEstudiante) {
+    await cargarEstudiantesParaUsuario();
+    campoUsuarioEstudiante.value = String(usuario.estudiante_id);
+  } else {
+    campoUsuarioEstudiante.value = "";
+  }
+
+  formularioUsuario.querySelector('button[type="submit"]').textContent =
+    "Guardar cambios";
+
+  document.querySelector("#vista-usuarios .tarjeta-formulario h2").textContent =
+    `Editar usuario: ${usuario.usuario}`;
+
+  formularioUsuario.scrollIntoView({ behavior: "smooth", block: "start" });
+}

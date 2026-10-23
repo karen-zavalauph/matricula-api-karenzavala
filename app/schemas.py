@@ -1,7 +1,7 @@
 from datetime import date
 from typing import Literal
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 
 EstadoEstudiante = Literal["ACTIVO", "INACTIVO", "GRADUADO"]
@@ -25,6 +25,63 @@ class UsuarioRespuesta(BaseModel):
     usuario: str
     nombre_completo: str
     rol: RolUsuario
+
+
+class UsuarioCrear(BaseModel):
+    usuario: str = Field(min_length=3, max_length=40)
+    nombre_completo: str = Field(min_length=2, max_length=120)
+    clave: str = Field(min_length=8, max_length=100)
+    rol: RolUsuario
+    estudiante_id: int | None = Field(default=None, gt=0)
+    activo: bool = True
+
+    @model_validator(mode="after")
+    def validar_vinculo_estudiante(self):
+        if self.rol == "ESTUDIANTE" and self.estudiante_id is None:
+            raise ValueError(
+                "Debes vincular la cuenta con un registro de estudiante."
+            )
+
+        if self.rol != "ESTUDIANTE" and self.estudiante_id is not None:
+            raise ValueError(
+                "Solo una cuenta ESTUDIANTE puede tener estudiante_id."
+            )
+
+        return self
+
+
+class UsuarioAdminRespuesta(BaseModel):
+    id: int
+    usuario: str
+    nombre_completo: str
+    rol: RolUsuario
+    activo: bool
+    estudiante_id: int | None = None
+
+
+class UsuarioActualizar(BaseModel):
+    nombre_completo: str = Field(min_length=2, max_length=120)
+    rol: RolUsuario
+    estudiante_id: int | None = Field(default=None, gt=0)
+    activo: bool = True
+
+    @model_validator(mode="after")
+    def validar_vinculo_estudiante(self):
+        if self.rol == "ESTUDIANTE" and self.estudiante_id is None:
+            raise ValueError(
+                "Debes vincular la cuenta con un registro de estudiante."
+            )
+
+        if self.rol != "ESTUDIANTE" and self.estudiante_id is not None:
+            raise ValueError(
+                "Solo una cuenta ESTUDIANTE puede tener estudiante_id."
+            )
+
+        return self
+
+
+class UsuarioCambiarClave(BaseModel):
+    clave: str = Field(min_length=8, max_length=100)
 
 
 class CarreraEntrada(BaseModel):

@@ -18,6 +18,8 @@ from app.routers import (
     periodos,
     reportes,
     secciones,
+    usuarios,
+    portal_estudiante,
 )
 
 
@@ -58,6 +60,8 @@ app.include_router(secciones.router, prefix=PREFIJO)
 app.include_router(matriculas.router, prefix=PREFIJO)
 app.include_router(calificaciones.router, prefix=PREFIJO)
 app.include_router(reportes.router, prefix=PREFIJO)
+app.include_router(usuarios.router, prefix=PREFIJO)
+app.include_router(portal_estudiante.router, prefix=PREFIJO)
 
 
 @app.get("/salud", tags=["Inicio"])
