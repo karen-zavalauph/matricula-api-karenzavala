@@ -37,7 +37,7 @@ def listar_estudiantes(
     estado: str | None = Query(
         default=None, pattern="^(ACTIVO|INACTIVO|GRADUADO)$"
     ),
-    limite: int = Query(default=50, ge=1, le=100),
+    limite: int = Query(default=100, ge=1, le=200),
     desplazamiento: int = Query(default=0, ge=0),
 ):
     condiciones: list[str] = []
