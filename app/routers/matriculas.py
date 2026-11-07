@@ -29,46 +29,76 @@ CONSULTA_BASE = """
 
 
 @router.get("/opciones")
-def obtener_opciones_matricula():
+def obtener_opciones_matricula(
+    carrera_id: int | None = Query(default=None, gt=0),
+):
     with conexion_lectura() as conexion:
+        carreras = conexion.execute(
+            """
+            SELECT id, codigo, nombre
+            FROM carreras
+            WHERE activo = 1
+            ORDER BY nombre
+            """
+        ).fetchall()
+
+        filtro_carrera = ""
+        parametros = []
+
+        if carrera_id is not None:
+            filtro_carrera = "AND e.carrera_id = ?"
+            parametros.append(carrera_id)
+
         estudiantes = conexion.execute(
-            """
-            SELECT id, cuenta, nombres, apellidos, estado
-            FROM estudiantes
-            WHERE estado = 'ACTIVO'
-            ORDER BY apellidos, nombres
-            """
+            f"""
+            SELECT
+                e.id,
+                e.cuenta,
+                e.nombres,
+                e.apellidos,
+                e.estado,
+                e.carrera_id
+            FROM estudiantes e
+            WHERE e.estado = 'ACTIVO'
+              {filtro_carrera}
+            ORDER BY e.apellidos, e.nombres
+            """,
+            parametros,
         ).fetchall()
 
         secciones = conexion.execute(
-            """
-            SELECT
-                s.id,
-                s.codigo,
-                a.codigo AS asignatura_codigo,
-                p.anio || '-' || p.numero AS periodo_nombre,
-                s.cupo_maximo - COUNT(
-                    CASE WHEN m.estado <> 'CANCELADA' THEN 1 END
-                ) AS cupos_disponibles
-            FROM secciones s
-            JOIN asignaturas a ON a.id = s.asignatura_id
-            JOIN periodos p ON p.id = s.periodo_id
-            LEFT JOIN matriculas m ON m.seccion_id = s.id
-            WHERE s.estado = 'ABIERTA'
-              AND p.activo = 1
-            GROUP BY
-                s.id,
-                s.codigo,
-                a.codigo,
-                p.anio,
-                p.numero,
-                s.cupo_maximo
-            HAVING cupos_disponibles > 0
-            ORDER BY a.codigo, s.codigo
-            """
-        ).fetchall()
+    """
+    SELECT
+        s.id,
+        s.codigo,
+        a.codigo AS asignatura_codigo,
+        p.anio || '-' || p.numero AS periodo_nombre,
+        s.cupo_maximo - COUNT(
+            CASE WHEN m.estado <> 'CANCELADA' THEN 1 END
+        ) AS cupos_disponibles
+    FROM secciones s
+    JOIN asignaturas a ON a.id = s.asignatura_id
+    JOIN periodos p ON p.id = s.periodo_id
+    LEFT JOIN matriculas m ON m.seccion_id = s.id
+    WHERE s.estado = 'ABIERTA'
+      AND p.activo = 1
+      AND (? IS NULL OR a.carrera_id = ?)
+    GROUP BY
+        s.id,
+        s.codigo,
+        a.codigo,
+        p.anio,
+        p.numero,
+        s.cupo_maximo
+    HAVING cupos_disponibles > 0
+    ORDER BY a.codigo, s.codigo
+    """,
+    (carrera_id, carrera_id),
+).fetchall()
 
+        
     return {
+        "carreras": filas_a_lista(carreras),
         "estudiantes": filas_a_lista(estudiantes),
         "secciones": filas_a_lista(secciones),
     }

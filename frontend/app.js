@@ -133,7 +133,7 @@ const campoMatriculaSeccion = document.getElementById("matricula-seccion");
 const botonGuardarMatricula = document.getElementById("boton-guardar-matricula");
 const mensajeMatricula = document.getElementById("mensaje-matricula");
 const cuerpoTablaMatriculas = document.getElementById("cuerpo-tabla-matriculas");
-
+const campoMatriculaCarrera = document.getElementById("matricula-carrera");
 
 //referencias a calificaciones
 const formularioCalificacion = document.getElementById("formulario-calificacion");
@@ -1486,49 +1486,45 @@ async function cargarMatriculas() {
   try {
    const rutas = ["/matriculas", "/matriculas/opciones"];
 
-const respuestas = await Promise.all(
+  const respuestas = await Promise.all(
   rutas.map((ruta) => fetch(`${URL_BASE_API}${ruta}`))
-);
+  );
 
-if (respuestas.some((respuesta) => !respuesta.ok)) {
+  if (respuestas.some((respuesta) => !respuesta.ok)) {
   throw new Error("No se pudieron cargar los datos de matrículas");
-}
+  }
 
-const [matriculas, opciones] = await Promise.all(
+  const [matriculas, opciones] = await Promise.all(
   respuestas.map((respuesta) => respuesta.json())
-);
+  );
 
 
 
 
-const { estudiantes, secciones } = opciones;
+  const { carreras } = opciones;
 
-    campoMatriculaEstudiante.innerHTML =
-      '<option value="">Seleccione un estudiante</option>';
 
-    estudiantes
-      .filter((estudiante) => estudiante.estado === "ACTIVO")
-      .forEach((estudiante) => {
-        const opcion = document.createElement("option");
-        opcion.value = estudiante.id;
-        opcion.textContent =
-          `${estudiante.cuenta} — ${estudiante.nombres} ${estudiante.apellidos}`;
-        campoMatriculaEstudiante.appendChild(opcion);
-      });
+  campoMatriculaCarrera.innerHTML =
+  '<option value="">Seleccione una carrera</option>';
 
-    campoMatriculaSeccion.innerHTML =
-      '<option value="">Seleccione una sección</option>';
+  carreras.forEach((carrera) => {
+  const opcion = document.createElement("option");
+  opcion.value = carrera.id;
+  opcion.textContent = `${carrera.codigo} — ${carrera.nombre}`;
+  campoMatriculaCarrera.appendChild(opcion);
+  });
 
-    secciones.forEach((seccion) => {
-      const opcion = document.createElement("option");
-      opcion.value = seccion.id;
-      opcion.textContent =
-        `${seccion.asignatura_codigo} — Sección ${seccion.codigo} ` +
-        `(${seccion.periodo_nombre}; ${seccion.cupos_disponibles} cupos)`;
-      campoMatriculaSeccion.appendChild(opcion);
-    });
+  campoMatriculaEstudiante.innerHTML =
+  '<option value="">Seleccione primero una carrera</option>';
+
+  campoMatriculaSeccion.innerHTML =
+  '<option value="">Seleccione primero una carrera</option>';
+
+
 
     cuerpoTablaMatriculas.innerHTML = "";
+
+
 
     matriculas.forEach((matricula) => {
       const fila = document.createElement("tr");
@@ -1547,7 +1543,7 @@ const { estudiantes, secciones } = opciones;
   <td>${matricula.fecha_matricula}</td>
   <td>${pastillaEstado(matricula.estado)}</td>
   <td class="acciones-fila">${accion}</td>
-`;
+  `;
 
       const botonCancelar = fila.querySelector('[data-accion="cancelar"]');
       if (botonCancelar) {
@@ -1563,6 +1559,58 @@ const { estudiantes, secciones } = opciones;
       "No se pudieron cargar estudiantes, secciones o matrículas.";
   }
 }
+
+
+async function cargarEstudiantesDeCarrera() {
+  const carreraId = campoMatriculaCarrera.value;
+
+  campoMatriculaEstudiante.innerHTML =
+    '<option value="">Seleccione un estudiante</option>';
+  campoMatriculaSeccion.innerHTML =
+    '<option value="">Seleccione una sección</option>';
+
+  if (!carreraId) {
+    campoMatriculaEstudiante.innerHTML =
+      '<option value="">Seleccione primero una carrera</option>';
+    campoMatriculaSeccion.innerHTML =
+      '<option value="">Seleccione primero una carrera</option>';
+    return;
+  }
+
+  try {
+    const respuesta = await fetch(
+      `${URL_BASE_API}/matriculas/opciones?carrera_id=${encodeURIComponent(carreraId)}`
+    );
+
+    if (!respuesta.ok) {
+      throw new Error("No se pudieron cargar las opciones.");
+    }
+
+    const { estudiantes, secciones } = await respuesta.json();
+
+    estudiantes.forEach((estudiante) => {
+      const opcion = document.createElement("option");
+      opcion.value = estudiante.id;
+      opcion.textContent =
+        `${estudiante.cuenta} — ${estudiante.nombres} ${estudiante.apellidos}`;
+      campoMatriculaEstudiante.appendChild(opcion);
+    });
+
+    secciones.forEach((seccion) => {
+      const opcion = document.createElement("option");
+      opcion.value = seccion.id;
+      opcion.textContent =
+        `${seccion.asignatura_codigo} — Sección ${seccion.codigo} ` +
+        `(${seccion.periodo_nombre}; ${seccion.cupos_disponibles} cupos)`;
+      campoMatriculaSeccion.appendChild(opcion);
+    });
+  } catch (error) {
+    mensajeMatricula.textContent =
+      "No se pudieron cargar estudiantes o secciones de esa carrera.";
+  }
+}
+
+campoMatriculaCarrera.addEventListener("change", cargarEstudiantesDeCarrera);
 
 async function guardarMatricula() {
   if (!formularioMatricula.reportValidity()) return;
