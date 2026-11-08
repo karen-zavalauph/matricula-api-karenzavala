@@ -189,6 +189,11 @@ const cuerpoTablaUsuariosEstudiantes =
   document.getElementById("cuerpo-tabla-usuarios-estudiantes");
 
 const mensajeUsuario = document.getElementById("mensaje-usuario");
+const campoUsuarioDocente =
+  document.getElementById("usuario-docente");
+const contenedorDocente =
+  document.getElementById("campo-vinculo-docente");
+
 
 
 
@@ -2291,19 +2296,61 @@ async function cargarEstudiantesParaUsuario() {
 }
 
 
-campoUsuarioRol.addEventListener("change", async () => {
-  const esEstudiante = campoUsuarioRol.value === "ESTUDIANTE";
+async function cargarDocentesParaUsuario() {
+  try {
+    const respuesta = await fetch(`${URL_BASE_API}/docentes`);
 
-  contenedorEstudiante.classList.toggle("oculto", !esEstudiante);
-  campoUsuarioEstudiante.required = esEstudiante;
+    if (!respuesta.ok) {
+      throw new Error("No se pudieron cargar los docentes.");
+    }
 
-  if (esEstudiante) {
-    await cargarEstudiantesParaUsuario();
-  } else {
-    campoUsuarioEstudiante.value = "";
+    const docentes = await respuesta.json();
+
+    campoUsuarioDocente.innerHTML =
+      '<option value="">Selecciona un docente</option>';
+
+    docentes
+      .filter((docente) => docente.estado === "ACTIVO")
+      .forEach((docente) => {
+        const opcion = document.createElement("option");
+        opcion.value = docente.id;
+        opcion.textContent =
+          `${docente.numero_empleado} — ${docente.nombres} ${docente.apellidos}`;
+        campoUsuarioDocente.appendChild(opcion);
+      });
+  } catch (error) {
+    mensajeUsuario.textContent =
+      "No se pudo cargar la lista de docentes para vincular.";
   }
-});
+}
 
+
+
+
+campoUsuarioRol.addEventListener("change", async () => {
+  const esEstudiante = usuario.rol === "ESTUDIANTE";
+const esDocente = usuario.rol === "DOCENTE";
+
+contenedorEstudiante.classList.toggle("oculto", !esEstudiante);
+contenedorDocente.classList.toggle("oculto", !esDocente);
+
+campoUsuarioEstudiante.required = esEstudiante;
+campoUsuarioDocente.required = esDocente;
+
+if (esEstudiante) {
+  await cargarEstudiantesParaUsuario();
+  campoUsuarioEstudiante.value = String(usuario.estudiante_id ?? "");
+} else {
+  campoUsuarioEstudiante.value = "";
+}
+
+if (esDocente) {
+  await cargarDocentesParaUsuario();
+  campoUsuarioDocente.value = String(usuario.docente_id ?? "");
+} else {
+  campoUsuarioDocente.value = "";
+}
+});
 
 
 
@@ -2318,15 +2365,18 @@ formularioUsuario.addEventListener("submit", async (evento) => {
   const rol = campoUsuarioRol.value;
 
   const datos = {
-    nombre_completo: campoUsuarioNombreCompleto.value.trim(),
-    rol,
-    activo: campoUsuarioActivo.value === "true",
-    estudiante_id:
-      rol === "ESTUDIANTE"
-        ? Number(campoUsuarioEstudiante.value)
-        : null,
-  };
-
+  nombre_completo: campoUsuarioNombreCompleto.value.trim(),
+  rol,
+  activo: campoUsuarioActivo.value === "true",
+  estudiante_id:
+    rol === "ESTUDIANTE"
+      ? Number(campoUsuarioEstudiante.value)
+      : null,
+  docente_id:
+    rol === "DOCENTE"
+      ? Number(campoUsuarioDocente.value)
+      : null,
+};
   if (!id) {
     datos.usuario = campoUsuarioNombre.value.trim();
     datos.clave = campoUsuarioClave.value;
@@ -2362,6 +2412,8 @@ formularioUsuario.addEventListener("submit", async (evento) => {
     campoUsuarioClave.required = true;
     campoUsuarioEstudiante.required = false;
     contenedorEstudiante.classList.add("oculto");
+    campoUsuarioDocente.required = false;
+    contenedorDocente.classList.add("oculto");
 
     document.querySelector("#vista-usuarios .tarjeta-formulario h2").textContent =
       "Crear usuario";

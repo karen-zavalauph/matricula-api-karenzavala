@@ -22,13 +22,15 @@ def listar_usuarios():
     with conexion_lectura() as conexion:
         filas = conexion.execute(
             """
-            SELECT id, usuario, nombre_completo, rol, activo, estudiante_id
+            SELECT id, usuario, nombre_completo, rol, activo, estudiante_id, docente_id
             FROM usuarios
             ORDER BY nombre_completo
             """
         ).fetchall()
 
     return [dict(fila) for fila in filas]
+
+
 
 
 @router.post(
@@ -61,6 +63,40 @@ def crear_usuario(datos: UsuarioCrear):
                     detail="No existe el estudiante seleccionado.",
                 )
 
+            cuenta_estudiante = conexion.execute(
+                "SELECT id FROM usuarios WHERE estudiante_id = ?",
+                (datos.estudiante_id,),
+            ).fetchone()
+
+            if cuenta_estudiante:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Ese estudiante ya tiene una cuenta.",
+                )
+
+        if datos.docente_id is not None:
+            docente = conexion.execute(
+                "SELECT id FROM docentes WHERE id = ?",
+                (datos.docente_id,),
+            ).fetchone()
+
+            if docente is None:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="No existe el docente seleccionado.",
+                )
+
+            cuenta_docente = conexion.execute(
+                "SELECT id FROM usuarios WHERE docente_id = ?",
+                (datos.docente_id,),
+            ).fetchone()
+
+            if cuenta_docente:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Ese docente ya tiene una cuenta.",
+                )
+
     try:
         with transaccion() as conexion:
             cursor = conexion.execute(
@@ -71,9 +107,10 @@ def crear_usuario(datos: UsuarioCrear):
                     clave_hash,
                     rol,
                     activo,
-                    estudiante_id
+                    estudiante_id,
+                    docente_id
                 )
-                VALUES (?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     datos.usuario,
@@ -82,23 +119,24 @@ def crear_usuario(datos: UsuarioCrear):
                     datos.rol,
                     int(datos.activo),
                     datos.estudiante_id,
+                    datos.docente_id,
                 ),
             )
             usuario_id = cursor.lastrowid
 
     except Exception as error:
-        # También detecta duplicados si dos solicitudes llegan casi juntas.
         if "UNIQUE constraint failed" in str(error):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="Ese nombre de usuario ya está registrado.",
+                detail="El usuario, estudiante o docente ya tiene una cuenta.",
             ) from error
         raise
 
     with conexion_lectura() as conexion:
         fila = conexion.execute(
             """
-            SELECT id, usuario, nombre_completo, rol, activo, estudiante_id
+            SELECT id, usuario, nombre_completo, rol, activo,
+                   estudiante_id, docente_id
             FROM usuarios
             WHERE id = ?
             """,
@@ -139,7 +177,7 @@ def actualizar_usuario(
                     detail="No existe el estudiante seleccionado.",
                 )
 
-            cuenta_vinculada = conexion.execute(
+            cuenta_estudiante = conexion.execute(
                 """
                 SELECT id FROM usuarios
                 WHERE estudiante_id = ? AND id <> ?
@@ -147,10 +185,36 @@ def actualizar_usuario(
                 (datos.estudiante_id, usuario_id),
             ).fetchone()
 
-            if cuenta_vinculada:
+            if cuenta_estudiante:
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
-                    detail="Ese estudiante ya tiene una cuenta vinculada.",
+                    detail="Ese estudiante ya tiene otra cuenta.",
+                )
+
+        if datos.docente_id is not None:
+            docente = conexion.execute(
+                "SELECT id FROM docentes WHERE id = ?",
+                (datos.docente_id,),
+            ).fetchone()
+
+            if docente is None:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="No existe el docente seleccionado.",
+                )
+
+            cuenta_docente = conexion.execute(
+                """
+                SELECT id FROM usuarios
+                WHERE docente_id = ? AND id <> ?
+                """,
+                (datos.docente_id, usuario_id),
+            ).fetchone()
+
+            if cuenta_docente:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Ese docente ya tiene otra cuenta.",
                 )
 
     if administrador["id"] == usuario_id and (
@@ -168,7 +232,8 @@ def actualizar_usuario(
             SET nombre_completo = ?,
                 rol = ?,
                 activo = ?,
-                estudiante_id = ?
+                estudiante_id = ?,
+                docente_id = ?
             WHERE id = ?
             """,
             (
@@ -176,6 +241,7 @@ def actualizar_usuario(
                 datos.rol,
                 int(datos.activo),
                 datos.estudiante_id,
+                datos.docente_id,
                 usuario_id,
             ),
         )
@@ -183,7 +249,8 @@ def actualizar_usuario(
     with conexion_lectura() as conexion:
         fila = conexion.execute(
             """
-            SELECT id, usuario, nombre_completo, rol, activo, estudiante_id
+            SELECT id, usuario, nombre_completo, rol, activo,
+                   estudiante_id, docente_id
             FROM usuarios
             WHERE id = ?
             """,

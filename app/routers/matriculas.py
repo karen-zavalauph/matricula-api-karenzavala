@@ -31,23 +31,71 @@ CONSULTA_BASE = """
 @router.get("/opciones")
 def obtener_opciones_matricula(
     carrera_id: int | None = Query(default=None, gt=0),
+    usuario: dict = Depends(requiere_roles("ADMIN", "DOCENTE")),
 ):
+    docente_id = None
+
+    if usuario["rol"] == "DOCENTE":
+        docente_id = usuario.get("docente_id")
+
+        if docente_id is None:
+            raise HTTPException(
+                status_code=403,
+                detail="La cuenta docente no está vinculada a un registro docente.",
+            )
+
+    subconsulta_carreras_docente = """
+        SELECT DISTINCT a2.carrera_id
+        FROM secciones s2
+        JOIN asignaturas a2 ON a2.id = s2.asignatura_id
+        JOIN periodos p2 ON p2.id = s2.periodo_id
+        WHERE s2.docente_id = ?
+          AND s2.estado = 'ABIERTA'
+          AND p2.activo = 1
+    """
+
     with conexion_lectura() as conexion:
+        filtro_carreras = ""
+        parametros_carreras = []
+
+        if docente_id is not None:
+            filtro_carreras = f"AND id IN ({subconsulta_carreras_docente})"
+            parametros_carreras.append(docente_id)
+
         carreras = conexion.execute(
-            """
+            f"""
             SELECT id, codigo, nombre
             FROM carreras
             WHERE activo = 1
+              {filtro_carreras}
             ORDER BY nombre
-            """
+            """,
+            parametros_carreras,
         ).fetchall()
 
-        filtro_carrera = ""
-        parametros = []
+        ids_carreras_permitidas = {fila["id"] for fila in carreras}
+
+        if (
+            carrera_id is not None
+            and carrera_id not in ids_carreras_permitidas
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail="No tienes permiso para matricular estudiantes de esa carrera.",
+            )
+
+        filtro_estudiantes = ""
+        parametros_estudiantes = []
 
         if carrera_id is not None:
-            filtro_carrera = "AND e.carrera_id = ?"
-            parametros.append(carrera_id)
+            filtro_estudiantes += " AND e.carrera_id = ?"
+            parametros_estudiantes.append(carrera_id)
+
+        if docente_id is not None:
+            filtro_estudiantes += (
+                f" AND e.carrera_id IN ({subconsulta_carreras_docente})"
+            )
+            parametros_estudiantes.append(docente_id)
 
         estudiantes = conexion.execute(
             f"""
@@ -60,49 +108,56 @@ def obtener_opciones_matricula(
                 e.carrera_id
             FROM estudiantes e
             WHERE e.estado = 'ACTIVO'
-              {filtro_carrera}
+              {filtro_estudiantes}
             ORDER BY e.apellidos, e.nombres
             """,
-            parametros,
+            parametros_estudiantes,
         ).fetchall()
 
-        secciones = conexion.execute(
-    """
-    SELECT
-        s.id,
-        s.codigo,
-        a.codigo AS asignatura_codigo,
-        p.anio || '-' || p.numero AS periodo_nombre,
-        s.cupo_maximo - COUNT(
-            CASE WHEN m.estado <> 'CANCELADA' THEN 1 END
-        ) AS cupos_disponibles
-    FROM secciones s
-    JOIN asignaturas a ON a.id = s.asignatura_id
-    JOIN periodos p ON p.id = s.periodo_id
-    LEFT JOIN matriculas m ON m.seccion_id = s.id
-    WHERE s.estado = 'ABIERTA'
-      AND p.activo = 1
-      AND (? IS NULL OR a.carrera_id = ?)
-    GROUP BY
-        s.id,
-        s.codigo,
-        a.codigo,
-        p.anio,
-        p.numero,
-        s.cupo_maximo
-    HAVING cupos_disponibles > 0
-    ORDER BY a.codigo, s.codigo
-    """,
-    (carrera_id, carrera_id),
-).fetchall()
+        filtro_secciones = "AND (? IS NULL OR a.carrera_id = ?)"
+        parametros_secciones = [carrera_id, carrera_id]
 
-        
+        if docente_id is not None:
+            filtro_secciones += (
+                f" AND a.carrera_id IN ({subconsulta_carreras_docente})"
+            )
+            parametros_secciones.append(docente_id)
+
+        secciones = conexion.execute(
+            f"""
+            SELECT
+                s.id,
+                s.codigo,
+                a.codigo AS asignatura_codigo,
+                p.anio || '-' || p.numero AS periodo_nombre,
+                s.cupo_maximo - COUNT(
+                    CASE WHEN m.estado <> 'CANCELADA' THEN 1 END
+                ) AS cupos_disponibles
+            FROM secciones s
+            JOIN asignaturas a ON a.id = s.asignatura_id
+            JOIN periodos p ON p.id = s.periodo_id
+            LEFT JOIN matriculas m ON m.seccion_id = s.id
+            WHERE s.estado = 'ABIERTA'
+              AND p.activo = 1
+              {filtro_secciones}
+            GROUP BY
+                s.id,
+                s.codigo,
+                a.codigo,
+                p.anio,
+                p.numero,
+                s.cupo_maximo
+            HAVING cupos_disponibles > 0
+            ORDER BY a.codigo, s.codigo
+            """,
+            parametros_secciones,
+        ).fetchall()
+
     return {
         "carreras": filas_a_lista(carreras),
         "estudiantes": filas_a_lista(estudiantes),
         "secciones": filas_a_lista(secciones),
     }
-
 
 @router.get("", response_model=list[MatriculaRespuesta])
 def listar_matriculas(
@@ -150,9 +205,14 @@ def obtener_matricula(matricula_id: int):
 
 
 @router.post(
-    "", response_model=MatriculaRespuesta, status_code=status.HTTP_201_CREATED
+    "",
+    response_model=MatriculaRespuesta,
+    status_code=status.HTTP_201_CREATED,
 )
-def crear_matricula(datos: MatriculaEntrada):
+def crear_matricula(
+    datos: MatriculaEntrada,
+    usuario: dict = Depends(requiere_roles("ADMIN", "DOCENTE")),
+):
     with transaccion() as conexion:
         existente = conexion.execute(
             """
@@ -161,17 +221,87 @@ def crear_matricula(datos: MatriculaEntrada):
             """,
             (datos.estudiante_id, datos.seccion_id),
         ).fetchone()
-        if existente is not None and existente["estado"] != "CANCELADA":
-            raise HTTPException(409, "El estudiante ya está matriculado en la sección")
 
-        validar_nueva_matricula(conexion, datos.estudiante_id, datos.seccion_id)
+        if existente is not None and existente["estado"] != "CANCELADA":
+            raise HTTPException(
+                409,
+                "El estudiante ya está matriculado en la sección",
+            )
+
+        validar_nueva_matricula(
+            conexion,
+            datos.estudiante_id,
+            datos.seccion_id,
+        )
+
+        if usuario["rol"] == "DOCENTE":
+            docente_id = usuario.get("docente_id")
+
+            if docente_id is None:
+                raise HTTPException(
+                    status_code=403,
+                    detail="La cuenta docente no está vinculada a un registro docente.",
+                )
+
+            estudiante = conexion.execute(
+                """
+                SELECT carrera_id
+                FROM estudiantes
+                WHERE id = ?
+                """,
+                (datos.estudiante_id,),
+            ).fetchone()
+
+            seccion = conexion.execute(
+                """
+                SELECT a.carrera_id
+                FROM secciones s
+                JOIN asignaturas a ON a.id = s.asignatura_id
+                WHERE s.id = ?
+                """,
+                (datos.seccion_id,),
+            ).fetchone()
+
+            if estudiante is None or seccion is None:
+                raise HTTPException(
+                    status_code=404,
+                    detail="No se encontró el estudiante o la sección.",
+                )
+
+            if estudiante["carrera_id"] != seccion["carrera_id"]:
+                raise HTTPException(
+                    status_code=403,
+                    detail="El estudiante y la sección deben pertenecer a la misma carrera.",
+                )
+
+            carrera_asignada = conexion.execute(
+                """
+                SELECT 1
+                FROM secciones s
+                JOIN asignaturas a ON a.id = s.asignatura_id
+                JOIN periodos p ON p.id = s.periodo_id
+                WHERE s.docente_id = ?
+                  AND a.carrera_id = ?
+                  AND s.estado = 'ABIERTA'
+                  AND p.activo = 1
+                LIMIT 1
+                """,
+                (docente_id, estudiante["carrera_id"]),
+            ).fetchone()
+
+            if carrera_asignada is None:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Solo puedes matricular estudiantes de las carreras de tus secciones activas.",
+                )
 
         if existente is not None:
             matricula_id = existente["id"]
             conexion.execute(
                 """
                 UPDATE matriculas
-                SET estado = 'MATRICULADA', fecha_matricula = CURRENT_TIMESTAMP
+                SET estado = 'MATRICULADA',
+                    fecha_matricula = CURRENT_TIMESTAMP
                 WHERE id = ?
                 """,
                 (matricula_id,),
@@ -187,10 +317,11 @@ def crear_matricula(datos: MatriculaEntrada):
             matricula_id = cursor.lastrowid
 
         fila = conexion.execute(
-            f"{CONSULTA_BASE} WHERE m.id = ?", (matricula_id,)
+            f"{CONSULTA_BASE} WHERE m.id = ?",
+            (matricula_id,),
         ).fetchone()
-        return dict(fila)
 
+        return dict(fila)
 
 @router.patch("/{matricula_id}/cancelar", response_model=MensajeRespuesta)
 def cancelar_matricula(matricula_id: int):

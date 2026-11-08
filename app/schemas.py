@@ -33,18 +33,34 @@ class UsuarioCrear(BaseModel):
     clave: str = Field(min_length=8, max_length=100)
     rol: RolUsuario
     estudiante_id: int | None = Field(default=None, gt=0)
+    docente_id: int | None = Field(default=None, gt=0)
     activo: bool = True
 
     @model_validator(mode="after")
-    def validar_vinculo_estudiante(self):
-        if self.rol == "ESTUDIANTE" and self.estudiante_id is None:
-            raise ValueError(
-                "Debes vincular la cuenta con un registro de estudiante."
-            )
+    def validar_vinculo_segun_rol(self):
+        if self.rol == "ESTUDIANTE":
+            if self.estudiante_id is None:
+                raise ValueError(
+                    "Debes vincular la cuenta con un estudiante."
+                )
+            if self.docente_id is not None:
+                raise ValueError(
+                    "Una cuenta ESTUDIANTE no puede vincularse a un docente."
+                )
 
-        if self.rol != "ESTUDIANTE" and self.estudiante_id is not None:
+        elif self.rol == "DOCENTE":
+            if self.docente_id is None:
+                raise ValueError(
+                    "Debes vincular la cuenta con un docente."
+                )
+            if self.estudiante_id is not None:
+                raise ValueError(
+                    "Una cuenta DOCENTE no puede vincularse a un estudiante."
+                )
+
+        elif self.estudiante_id is not None or self.docente_id is not None:
             raise ValueError(
-                "Solo una cuenta ESTUDIANTE puede tener estudiante_id."
+                "Una cuenta ADMIN no puede vincularse a un estudiante o docente."
             )
 
         return self
@@ -57,24 +73,41 @@ class UsuarioAdminRespuesta(BaseModel):
     rol: RolUsuario
     activo: bool
     estudiante_id: int | None = None
+    docente_id: int | None = None
 
 
 class UsuarioActualizar(BaseModel):
     nombre_completo: str = Field(min_length=2, max_length=120)
     rol: RolUsuario
     estudiante_id: int | None = Field(default=None, gt=0)
+    docente_id: int | None = Field(default=None, gt=0)
     activo: bool = True
 
     @model_validator(mode="after")
-    def validar_vinculo_estudiante(self):
-        if self.rol == "ESTUDIANTE" and self.estudiante_id is None:
-            raise ValueError(
-                "Debes vincular la cuenta con un registro de estudiante."
-            )
+    def validar_vinculo_segun_rol(self):
+        if self.rol == "ESTUDIANTE":
+            if self.estudiante_id is None:
+                raise ValueError(
+                    "Debes vincular la cuenta con un estudiante."
+                )
+            if self.docente_id is not None:
+                raise ValueError(
+                    "Una cuenta ESTUDIANTE no puede vincularse a un docente."
+                )
 
-        if self.rol != "ESTUDIANTE" and self.estudiante_id is not None:
+        elif self.rol == "DOCENTE":
+            if self.docente_id is None:
+                raise ValueError(
+                    "Debes vincular la cuenta con un docente."
+                )
+            if self.estudiante_id is not None:
+                raise ValueError(
+                    "Una cuenta DOCENTE no puede vincularse a un estudiante."
+                )
+
+        elif self.estudiante_id is not None or self.docente_id is not None:
             raise ValueError(
-                "Solo una cuenta ESTUDIANTE puede tener estudiante_id."
+                "Una cuenta ADMIN no puede vincularse a un estudiante o docente."
             )
 
         return self

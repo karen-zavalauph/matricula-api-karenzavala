@@ -31,7 +31,7 @@ def obtener_usuario_actual(request: Request) -> dict:
         fila = conexion.execute(
             """
             SELECT u.id, u.usuario, u.nombre_completo, u.rol,
-                   u.activo, u.estudiante_id
+                   u.activo, u.estudiante_id, u.docente_id
             FROM sesiones s
             JOIN usuarios u ON u.id = s.usuario_id
             WHERE s.token_hash = ? AND s.expira_en > ?
