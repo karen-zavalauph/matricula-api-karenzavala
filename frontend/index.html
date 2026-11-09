@@ -72,6 +72,7 @@
 
     <nav aria-label="Navegación principal">
       <button type="button" data-destino="inicio">Inicio</button>
+      <button type="button" data-destino="perfil-docente">Mi perfil</button>
       <button type="button" data-destino="carreras">Carreras</button>
       <button type="button" data-destino="estudiantes">Estudiantes</button>
       <button type="button" data-destino="docentes">Docentes</button>
@@ -82,6 +83,7 @@
       <button type="button" data-destino="matriculas">Matrículas</button>
       <button type="button" data-destino="calificaciones">Calificaciones</button>
       <button type="button" data-destino="reportes">Reportes</button>
+      
 
 <button type="button" data-destino="mis-matriculas">
   Mis matrículas
@@ -106,13 +108,52 @@
       </section>
 
 
-    <!--<p id="texto-periodo" class="texto-periodo"></p>--> 
+   
 
 
     
     </section>
 
 
+ <!--<p id="texto-periodo" class="texto-periodo"></p>--> 
+   <section id="vista-perfil-docente" class="vista-modulo oculto">
+  <section class="tarjeta" id="tarjeta-perfil-docente">
+
+
+
+      <!--<p esto para que cada usuario docente pueda ver su perfil></p>--> 
+  <h2>Mi perfil docente</h2>
+
+  <div class="rejilla-formulario">
+    <div class="campo">
+      <strong>Número de empleado</strong>
+      <p id="perfil-docente-numero">—</p>
+    </div>
+
+    <div class="campo">
+      <strong>Nombre completo</strong>
+      <p id="perfil-docente-nombre">—</p>
+    </div>
+
+    <div class="campo">
+      <strong>Correo</strong>
+      <p id="perfil-docente-correo">—</p>
+    </div>
+
+    <div class="campo">
+      <strong>Especialidad</strong>
+      <p id="perfil-docente-especialidad">—</p>
+    </div>
+
+    <div class="campo">
+      <strong>Estado</strong>
+      <p id="perfil-docente-estado">—</p>
+    </div>
+  </div>
+
+  <p id="mensaje-perfil-docente" class="mensaje-error" aria-live="polite"></p>
+</section>
+</section>
 
 
 <section id="vista-carreras" class="vista-modulo oculto">

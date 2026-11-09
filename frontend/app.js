@@ -30,6 +30,22 @@ const campoBuscar = document.getElementById("campo-buscar");
 const cuerpoTablaEstudiantes = document.getElementById("cuerpo-tabla-estudiantes");
 const textoSinResultados = document.getElementById("texto-sin-resultados");
 
+//referencias a perfil docente
+const tarjetaPerfilDocente =
+  document.getElementById("tarjeta-perfil-docente");
+const perfilDocenteNumero =
+  document.getElementById("perfil-docente-numero");
+const perfilDocenteNombre =
+  document.getElementById("perfil-docente-nombre");
+const perfilDocenteCorreo =
+  document.getElementById("perfil-docente-correo");
+const perfilDocenteEspecialidad =
+  document.getElementById("perfil-docente-especialidad");
+const perfilDocenteEstado =
+  document.getElementById("perfil-docente-estado");
+const mensajePerfilDocente =
+  document.getElementById("mensaje-perfil-docente");
+
 const tituloFormulario = document.getElementById("titulo-formulario");
 const formularioEstudiante = document.getElementById("formulario-estudiante");
 const campoEstudianteId = document.getElementById("estudiante-id");
@@ -331,7 +347,13 @@ function aplicarPermisosInterfaz() {
       "reportes",
       "usuarios",
     ],
-    DOCENTE: ["inicio", "matriculas", "calificaciones", "reportes"],
+    DOCENTE: [
+  "inicio",
+  "matriculas",
+  "calificaciones",
+  "reportes",
+  "perfil-docente",
+],
     ESTUDIANTE: ["inicio", "mis-matriculas", "mis-calificaciones"],
   };
 
@@ -392,6 +414,14 @@ function mostrarDashboard() {
   else if (usuarioActual.rol === "ESTUDIANTE") {
   cargarMisMatriculas();
   cargarMisCalificaciones();
+}
+
+const esDocente = usuarioActual.rol === "DOCENTE";
+
+tarjetaPerfilDocente.classList.toggle("oculto", !esDocente);
+
+if (esDocente) {
+  cargarPerfilDocente();
 }
 }
 
@@ -2616,4 +2646,36 @@ async function prepararEdicionUsuario(usuario) {
     `Editar usuario: ${usuario.usuario}`;
 
   formularioUsuario.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+
+
+
+//función para perfil docente
+async function cargarPerfilDocente() {
+  mensajePerfilDocente.textContent = "";
+
+  try {
+    const respuesta = await fetch(
+      `${URL_BASE_API}/mi-cuenta/perfil-docente`
+    );
+
+    const datos = await respuesta.json().catch(() => null);
+
+    if (!respuesta.ok) {
+      throw new Error(
+        datos?.detail ?? "No se pudo cargar tu perfil docente."
+      );
+    }
+
+    perfilDocenteNumero.textContent = datos.numero_empleado;
+    perfilDocenteNombre.textContent =
+      `${datos.nombres} ${datos.apellidos}`;
+    perfilDocenteCorreo.textContent = datos.correo;
+    perfilDocenteEspecialidad.textContent = datos.especialidad;
+    perfilDocenteEstado.textContent =
+      datos.estado === "ACTIVO" ? "Activo" : "Inactivo";
+  } catch (error) {
+    mensajePerfilDocente.textContent = error.message;
+  }
 }
