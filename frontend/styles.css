@@ -1042,3 +1042,61 @@ body {
     min-width: 0;
   }
 }
+
+
+
+/* Imagen a la izquierda y formulario a la derecha */
+#vista-login:not(.oculto) {
+  min-height: 100vh;
+  padding: 40px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+
+  background-color: #7bbdff;
+  background-image:
+    linear-gradient(rgba(15, 23, 42, 0.35), rgba(15, 23, 42, 0.35)),
+    url("/fondo-login.jpg");
+  background-size: 50% 100%, 50% 100%;
+  background-position: left center, left center;
+  background-repeat: no-repeat;
+}
+
+/* Coloca la tarjeta de acceso en la columna derecha */
+#vista-login .tarjeta-login {
+  grid-column: 2;
+  justify-self: center;
+  width: min(100%, 440px);
+  background: rgba(109, 123, 255, 0.96);
+  backdrop-filter: blur(5px);
+}
+
+/* En pantallas estrechas, imagen arriba y formulario abajo */
+@media (max-width: 700px) {
+  #vista-login:not(.oculto) {
+    grid-template-columns: 1fr;
+    align-content: end;
+    padding: 24px;
+    background-size: 100% 40%, 100% 40%;
+    background-position: top center, top center;
+  }
+
+  #vista-login .tarjeta-login {
+    grid-column: 1;
+    width: 100%;
+  }
+}
+
+/* Fondo del dashboard */
+#vista-dashboard {
+  min-height: 100vh;
+  background:
+    linear-gradient(rgba(15, 23, 42, 0.35), rgba(15, 23, 42, 0.35)),
+    url("/fondo-dashboard.jpg") center / cover no-repeat;
+}
+
+/* Tarjeta del login */
+.tarjeta-login {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(5px);
+}
