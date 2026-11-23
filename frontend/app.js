@@ -354,7 +354,7 @@ function aplicarPermisosInterfaz() {
   "reportes",
   "perfil-docente",
 ],
-    ESTUDIANTE: ["inicio", "mis-matriculas", "mis-calificaciones"],
+    ESTUDIANTE: ["inicio", "mis-matriculas", "mis-calificaciones", "perfil-estudiante"],
   };
 
   const permitidos = permisosPorRol[usuarioActual.rol] ?? ["inicio"];
@@ -414,6 +414,7 @@ function mostrarDashboard() {
   else if (usuarioActual.rol === "ESTUDIANTE") {
   cargarMisMatriculas();
   cargarMisCalificaciones();
+  cargarPerfilEstudiante();
 }
 
 const esDocente = usuarioActual.rol === "DOCENTE";
@@ -2560,6 +2561,42 @@ async function cargarMisCalificaciones() {
   }
 }
 
+
+//función para que el estudinate puede ver sus datos personales
+async function cargarPerfilEstudiante() {
+  const mensaje = document.getElementById("mensaje-perfil-estudiante");
+
+  mensaje.textContent = "";
+
+  try {
+    const respuesta = await fetch(`${URL_BASE_API}/mi-cuenta/perfil`);
+
+    const datos = await respuesta.json().catch(() => null);
+
+    if (!respuesta.ok) {
+      throw new Error(
+        datos?.detail ?? "No se pudo cargar el perfil del estudiante."
+      );
+    }
+
+    document.getElementById("perfil-estudiante-cuenta").textContent =
+      datos.cuenta ?? "—";
+
+    document.getElementById("perfil-estudiante-nombre").textContent =
+      `${datos.nombres ?? ""} ${datos.apellidos ?? ""}`.trim() || "—";
+
+    document.getElementById("perfil-estudiante-correo").textContent =
+      datos.correo ?? "—";
+
+    document.getElementById("perfil-estudiante-carrera").textContent =
+      `${datos.carrera_codigo ?? ""} — ${datos.carrera_nombre ?? ""}`.trim();
+
+    document.getElementById("perfil-estudiante-estado").textContent =
+      datos.estado ?? "—";
+  } catch (error) {
+    mensaje.textContent = error.message;
+  }
+}
 
 
 //función para cambiar la contraseña del usuario actual

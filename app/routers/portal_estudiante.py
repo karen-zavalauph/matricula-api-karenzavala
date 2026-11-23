@@ -86,3 +86,36 @@ def mis_calificaciones(
         ).fetchall()
 
     return filas_a_lista(filas)
+
+
+@router.get("/perfil")
+def mi_perfil(
+    usuario: dict = Depends(requiere_roles("ESTUDIANTE")),
+):
+    estudiante_id = obtener_estudiante_vinculado(usuario)
+
+    with conexion_lectura() as conexion:
+        fila = conexion.execute(
+            """
+            SELECT
+                e.cuenta,
+                e.nombres,
+                e.apellidos,
+                e.correo,
+                e.estado,
+                c.codigo AS carrera_codigo,
+                c.nombre AS carrera_nombre
+            FROM estudiantes e
+            JOIN carreras c ON c.id = e.carrera_id
+            WHERE e.id = ?
+            """,
+            (estudiante_id,),
+        ).fetchone()
+
+    if fila is None:
+        raise HTTPException(
+            status_code=404,
+            detail="No se encontró el perfil del estudiante.",
+        )
+
+    return dict(fila)

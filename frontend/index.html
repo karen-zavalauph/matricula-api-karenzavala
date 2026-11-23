@@ -82,9 +82,10 @@
       <button type="button" data-destino="secciones">Secciones</button>
       <button type="button" data-destino="matriculas">Matrículas</button>
       <button type="button" data-destino="calificaciones">Calificaciones</button>
+      
       <button type="button" data-destino="reportes">Reportes</button>
       
-
+<button type="button" data-destino="perfil-estudiante">Mi perfil</button>
 <button type="button" data-destino="mis-matriculas">
   Mis matrículas
 </button>
@@ -918,6 +919,42 @@
 
 
 <!-- Esto solo puede verlo el estudiante, pero no editar -->
+<section id="vista-perfil-estudiante" class="vista-modulo oculto">
+  <section class="tarjeta">
+    <h2>Mi perfil de estudiante</h2>
+
+    <div class="rejilla-formulario">
+      <div class="campo">
+        <strong>Cuenta</strong>
+        <p id="perfil-estudiante-cuenta">—</p>
+      </div>
+
+      <div class="campo">
+        <strong>Nombre completo</strong>
+        <p id="perfil-estudiante-nombre">—</p>
+      </div>
+
+      <div class="campo">
+        <strong>Correo</strong>
+        <p id="perfil-estudiante-correo">—</p>
+      </div>
+
+      <div class="campo">
+        <strong>Carrera</strong>
+        <p id="perfil-estudiante-carrera">—</p>
+      </div>
+
+      <div class="campo">
+        <strong>Estado</strong>
+        <p id="perfil-estudiante-estado">—</p>
+      </div>
+    </div>
+
+    <p id="mensaje-perfil-estudiante" class="mensaje-error" aria-live="polite"></p>
+  </section>
+</section>
+
+
 <section id="vista-mis-matriculas" class="vista-modulo oculto">
   <section class="tarjeta tarjeta-tabla">
     <h2>Mis matrículas</h2>
