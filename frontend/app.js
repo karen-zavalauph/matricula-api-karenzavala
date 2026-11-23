@@ -382,6 +382,12 @@ function mostrarDashboard() {
   mostrarVistaModulo("inicio");
   aplicarPermisosInterfaz();
 
+  const recursosEstudiante = document.getElementById("recursos-estudiante");
+recursosEstudiante?.classList.toggle(
+  "oculto",
+  usuarioActual.rol !== "ESTUDIANTE"
+);
+
   tituloBienvenida.textContent = `Hola, ${usuarioActual.nombre_completo}`;
   chipUsuario.textContent = `Rol: ${usuarioActual.rol}`;
 

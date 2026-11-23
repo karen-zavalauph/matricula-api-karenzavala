@@ -1100,3 +1100,51 @@ body {
   background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(5px);
 }
+
+
+
+
+
+.recursos-estudiante-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.recurso-estudiante {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  color: var(--tinta-primaria);
+  text-decoration: none;
+}
+
+.recurso-estudiante:hover {
+  border-color: var(--acento);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+}
+
+.recurso-estudiante img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
+
+.recurso-estudiante span,
+.recurso-estudiante small {
+  display: block;
+}
+
+.recurso-estudiante small {
+  margin-top: 6px;
+  color: var(--tinta-secundaria);
+}
+
+@media (max-width: 640px) {
+  .recursos-estudiante-grid {
+    grid-template-columns: 1fr;
+  }
+}
